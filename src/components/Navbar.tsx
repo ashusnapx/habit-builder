@@ -64,9 +64,14 @@ const Navbar = () => {
   }, []);
 
   return (
-    <div className='flex flex-col md:flex-row items-center justify-between p-4 border-b-2 relative'>
+    <div className='flex flex-col md:flex-row items-center justify-between p-3 border-b-2 relative'>
       <div className='flex items-center justify-between w-full md:w-auto'>
-        <Link href="/" className='text-3xl font-bold tracking-tighter'>HabitAI</Link>
+        <div className="flex flex-col mt-0 tracking-tighter">
+          <Link href='/' className='text-3xl font-bold tracking-tighter'>
+            Habit.AI
+          </Link>
+          <h1>By Ashutosh Kumar</h1>
+        </div>
         <button onClick={toggleMenu} className='md:hidden'>
           {isMenuOpen ? <X /> : <Menu />}
         </button>
@@ -97,10 +102,10 @@ const Navbar = () => {
               <Button onClick={() => router.push("/sign-up")}>Sign Up</Button>
             </>
           )}
-          <Button onClick={handleSignOut}>
+          <Link href="" className="hover:text-blue-800">
             Github
-            <Github className='ml-2 h-4 w-4' />
-          </Button>
+            <Github className='ml-2 h-4 w-4 inline-block' />
+          </Link>
           <ModeToggle />
         </div>
       </div>

@@ -1,4 +1,4 @@
-import { Client, Account, Databases } from "appwrite";
+import { Client, Account, Databases, Query } from "appwrite";
 
 // Define the appwrite configuration interface
 interface AppwriteConfig {
@@ -76,3 +76,89 @@ export const fetchSubjects = async () => {
     throw error;
   }
 };
+
+// Function to fetch chapters
+export const fetchChapters = async (subjectId: string) => {
+  try {
+    const response = await database.listDocuments(
+      appwriteConfig.databaseId,
+      appwriteConfig.chapterCollectionId,
+      [Query.equal("subject", subjectId)]
+    );
+    return response.documents;
+  } catch (error) {
+    console.error("Error fetching chapters:", error);
+    throw error;
+  }
+};
+
+export const createChapter = async (subjectId: string, title: string) => {
+  try {
+    const response = await database.createDocument(
+      appwriteConfig.databaseId,
+      appwriteConfig.chapterCollectionId,
+      "unique()",
+      {
+        title,
+        completed: false,
+        progress: 0,
+        createdAt: new Date().toISOString(),
+        subject: subjectId,
+      }
+    );
+    console.log("Chapter created:", response);
+    return response;
+  } catch (error) {
+    console.error("Error creating chapter:", error);
+    throw error;
+  }
+};
+
+// Function to update chapter progress
+export const updateChapterProgress = async (
+  chapterId: string,
+  progress: number
+) => {
+  try {
+    const response = await database.updateDocument(
+      appwriteConfig.databaseId,
+      appwriteConfig.chapterCollectionId,
+      chapterId,
+      { progress }
+    );
+    console.log("Chapter progress updated:", response);
+    return response;
+  } catch (error) {
+    console.error("Error updating chapter progress:", error);
+    throw error;
+  }
+};
+
+// Function to update chapter completion status
+export const updateChapterCompletion = async (
+  id: string,
+  completed: boolean
+) => {
+  try {
+    await database.updateDocument(
+      appwriteConfig.databaseId,
+      appwriteConfig.chapterCollectionId,
+      id,
+      {
+        completed,
+        progress: completed ? 100 : 0,
+      }
+    );
+  } catch (error) {
+    console.error("Error updating chapter completion:", error);
+    throw error;
+  }
+};
+
+// Function to calculate subject progress
+export const calculateSubjectProgress = (chapters: any[]) => {
+  const totalChapters = chapters.length;
+  const completedChapters = chapters.filter((chapter) => chapter.completed).length;
+  return totalChapters === 0 ? 0 : (completedChapters / totalChapters) * 100;
+};
+
