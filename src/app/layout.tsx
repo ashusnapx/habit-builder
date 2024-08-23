@@ -20,7 +20,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang='en'>
+    <html lang='en' className="antialiased grainy">
       <body className={inter.className}>
         <ThemeProvider
           attribute='class'
@@ -28,11 +28,9 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          <QueryClientWrapper>
-            <Navbar />
-            {children}
-            <Footer/>
-          </QueryClientWrapper>
+          <Navbar />
+          {children}
+          <Footer />
         </ThemeProvider>
       </body>
     </html>
