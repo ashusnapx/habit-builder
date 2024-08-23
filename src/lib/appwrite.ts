@@ -162,3 +162,19 @@ export const calculateSubjectProgress = (chapters: any[]) => {
   return totalChapters === 0 ? 0 : (completedChapters / totalChapters) * 100;
 };
 
+export const updateSubject = async (id: string, title: string) => {
+  try {
+    const response = await database.updateDocument(
+      appwriteConfig.databaseId,
+      appwriteConfig.subjectCollectionId,
+      id,
+      { title }
+    );
+    console.log("Subject updated:", response);
+    return response;
+  } catch (error) {
+    console.error("Error updating subject:", error);
+    throw error;
+  }
+};
+

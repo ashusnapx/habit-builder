@@ -2,22 +2,37 @@
 
 import React, { useEffect, useState } from "react";
 import SubjectCard from "./SubjectCard";
-import { useSubject } from "@/hooks/useSubject"; // Import your custom hook for managing subjects
-import { fetchSubjects } from "@/lib/appwrite";
+import { fetchSubjects, fetchChapters, updateSubject } from "@/lib/appwrite";
 import CreateModal from "./CreateModal";
+import EditModal from "./EditModal"; // Import your EditModal component
 import { Button } from "./ui/button";
 
 const SubjectList = () => {
   const [subjects, setSubjects] = useState<any[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const { deleteSubject: deleteSubjectHandler } = useSubject();
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [editingSubject, setEditingSubject] = useState<any>(null); // State to store the subject being edited
 
   useEffect(() => {
     const getSubjects = async () => {
       try {
-        const data = await fetchSubjects();
-        setSubjects(data);
+        const subjectData = await fetchSubjects();
+        const subjectsWithProgress = await Promise.all(
+          subjectData.map(async (subject) => {
+            const chapterData = await fetchChapters(subject.$id);
+            const completedChapters = chapterData.filter(
+              (chapter) => chapter.completed
+            ).length;
+            const totalChapters = chapterData.length;
+            return {
+              ...subject,
+              completedChapters,
+              totalChapters,
+            };
+          })
+        );
+        setSubjects(subjectsWithProgress);
       } catch (error) {
         console.error("Failed to fetch subjects:", error);
       } finally {
@@ -28,14 +43,27 @@ const SubjectList = () => {
     getSubjects();
   }, []);
 
-  const handleEdit = (id: string) => {
-    // Handle the edit action, e.g., open a modal with the current subject data
-    console.log(`Edit subject with ID: ${id}`);
+  const handleEdit = (subject: any) => {
+    setEditingSubject(subject);
+    setIsEditModalOpen(true);
+  };
+
+  const handleEditModalClose = () => {
+    setIsEditModalOpen(false);
+    setEditingSubject(null);
+  };
+
+  const handleSubjectUpdated = (updatedSubject: any) => {
+    setSubjects((prevSubjects) =>
+      prevSubjects.map((subject) =>
+        subject.$id === updatedSubject.$id ? updatedSubject : subject
+      )
+    );
   };
 
   const handleDelete = async (id: string) => {
     try {
-      await deleteSubjectHandler(id);
+      // Handle delete logic
       setSubjects((prevSubjects) =>
         prevSubjects.filter((subject) => subject.$id !== id)
       );
@@ -51,25 +79,37 @@ const SubjectList = () => {
   if (loading) return <div>Loading...</div>;
 
   return (
-    <div>
-      <div className='grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3'>
+    <div className='mt-20 p-4'>
+      <h1 className="mt-5 mb-5 ml-4 text-2xl font-semibold tracking-tighter">Subjects</h1>
+      <div className='grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 capitalize'>
         {subjects.map((subject) => (
           <SubjectCard
             key={subject.$id}
             id={subject.$id}
             title={subject.title}
             description={subject.description}
-            onEdit={handleEdit}
+            completedChapters={subject.completedChapters}
+            totalChapters={subject.totalChapters}
+            onEdit={() => handleEdit(subject)}
             onDelete={handleDelete}
           />
         ))}
       </div>
 
       <CreateModal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
+        isOpen={isCreateModalOpen}
+        onClose={() => setIsCreateModalOpen(false)}
         onSubjectCreated={handleSubjectCreated}
       />
+
+      {editingSubject && (
+        <EditModal
+          isOpen={isEditModalOpen}
+          onClose={handleEditModalClose}
+          onSubjectUpdated={handleSubjectUpdated}
+          subject={editingSubject}
+        />
+      )}
     </div>
   );
 };

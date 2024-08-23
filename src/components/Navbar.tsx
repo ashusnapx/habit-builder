@@ -4,18 +4,10 @@ import { useState, useEffect } from "react";
 import { Button } from "./ui/button";
 import CreateModal from "./CreateModal";
 import { ModeToggle } from "./ModeToggle";
-import {
-  Github,
-  LockKeyholeIcon,
-  LogOutIcon,
-  Menu,
-  PlusIcon,
-  X,
-} from "lucide-react";
-import { account, signOut } from "@/lib/appwrite";
+import { Github, LogOutIcon, Menu, PlusIcon, X } from "lucide-react";
+import { account, fetchSubjects, signOut } from "@/lib/appwrite";
 import { useRouter } from "next/navigation";
 import { useFetchUser } from "@/hooks/useFetchUser";
-import { fetchSubjects } from "@/lib/appwrite"; // Ensure this import is correct
 import Link from "next/link";
 
 const Navbar = () => {
@@ -26,7 +18,7 @@ const Navbar = () => {
   const user = useFetchUser();
 
   useEffect(() => {
-    console.log("Fetched user:", user); // Log the fetched user data
+    console.log("Fetched user:", user);
   }, [user]);
 
   const openModal = () => setModalOpen(true);
@@ -53,7 +45,6 @@ const Navbar = () => {
   };
 
   const handleSubjectCreated = (newSubject: any) => {
-    // Fetch updated subjects after creating a new one
     fetchSubjects().then((subjects) => {
       console.log("Updated subjects:", subjects);
     });
@@ -64,57 +55,78 @@ const Navbar = () => {
   }, []);
 
   return (
-    <div className='flex flex-col md:flex-row items-center justify-between p-3 border-b-2 relative'>
-      <div className='flex items-center justify-between w-full md:w-auto'>
-        <div className="flex flex-col mt-0 tracking-tighter">
-          <Link href='/' className='text-3xl font-bold tracking-tighter'>
+    <header className='fixed top-0 left-0 w-full z-50 bg-white dark:bg-black shadow-lg capitalize'>
+      <div className='flex flex-col md:flex-row items-center justify-between p-4 md:p-6 border-b border-gray-200 dark:border-gray-700'>
+        <div className='flex items-center justify-between w-full md:w-auto space-x-4'>
+          <Link
+            href='/'
+            className='text-2xl font-bold text-gray-900 dark:text-white'
+          >
             Habit.AI
           </Link>
-          <h1>By Ashutosh Kumar</h1>
+          <span className='text-sm text-gray-600 dark:text-gray-400 hidden md:inline'>
+            By Ashutosh Kumar
+          </span>
+
+          <button
+            onClick={toggleMenu}
+            className='md:hidden text-gray-600 dark:text-gray-400 focus:outline-none'
+          >
+            {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
+          </button>
         </div>
-        <button onClick={toggleMenu} className='md:hidden'>
-          {isMenuOpen ? <X /> : <Menu />}
-        </button>
-      </div>
-      <div
-        className={`flex-col md:flex-row md:flex items-center ${
-          isMenuOpen ? "block" : "hidden"
-        } md:block`}
-      >
-        {/* Display the user's name */}
-        <div className='text-xl font-semibold mr-9 capitalize'>
-          Welcome {user?.user?.name ? user.user.name : "Guest"}
-        </div>
-        <div className='flex flex-row items-center justify-between gap-3 mt-2 md:mt-0'>
-          {isAuthenticated ? (
-            <>
-              <Button onClick={openModal}>
-                Create <PlusIcon className='ml-2 h-4 w-4' />
-              </Button>
-              <Button onClick={handleSignOut}>
-                Sign Out
-                <LogOutIcon className='ml-2 h-4 w-4' />
-              </Button>
-            </>
-          ) : (
-            <>
-              <Button onClick={() => router.push("/sign-in")}>Sign In</Button>
-              <Button onClick={() => router.push("/sign-up")}>Sign Up</Button>
-            </>
-          )}
-          <Link href="" className="hover:text-blue-800">
-            Github
-            <Github className='ml-2 h-4 w-4 inline-block' />
-          </Link>
-          <ModeToggle />
-        </div>
+
+        <nav
+          className={`fixed md:static inset-0 top-16 left-0 md:flex md:items-center md:space-x-6 md:top-0 md:inset-auto ${
+            isMenuOpen
+              ? "block bg-white dark:bg-black md:bg-transparent md:flex"
+              : "hidden"
+          } md:block`}
+        >
+          <div className='text-base text-center font-semibold text-gray-900 dark:text-white mt-4 md:mt-0'>
+            Welcome {user?.user?.name || "Guest"}
+          </div>
+          <div className='flex flex-col md:flex-row items-center space-y-4 md:space-y-0 md:space-x-4 mt-4 md:mt-0 gap-3'>
+            {isAuthenticated ? (
+              <div className='flex flex-col md:flex-row gap-2 md:gap-4'>
+                <Button
+                  onClick={openModal}
+                  className='flex items-center space-x-2 md:space-x-1'
+                >
+                  <PlusIcon size={18} />
+                  <span>Create</span>
+                </Button>
+                <Button
+                  onClick={handleSignOut}
+                  className='flex items-center space-x-2 md:space-x-1'
+                >
+                  <LogOutIcon size={18} />
+                  <span>Sign Out</span>
+                </Button>
+              </div>
+            ) : (
+              <div className='flex flex-col md:flex-row gap-2 md:gap-4'>
+                <Button onClick={() => router.push("/sign-in")}>Sign In</Button>
+                <Button onClick={() => router.push("/sign-up")}>Sign Up</Button>
+              </div>
+            )}
+            <Link
+              href=''
+              className='flex items-center space-x-2 md:space-x-1 text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400'
+            >
+              <Github size={18} />
+              <span>Github</span>
+            </Link>
+            <ModeToggle />
+          </div>
+        </nav>
       </div>
       <CreateModal
         isOpen={isModalOpen}
         onClose={closeModal}
         onSubjectCreated={handleSubjectCreated}
       />
-    </div>
+    </header>
   );
 };
 
