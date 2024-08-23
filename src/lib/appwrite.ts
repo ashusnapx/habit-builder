@@ -1,5 +1,4 @@
-import { Client, Account, Databases, Query } from "appwrite";
-import { v4 as uuidv4 } from "uuid";
+import { Client, Account, Databases } from "appwrite";
 
 // Define the appwrite configuration interface
 interface AppwriteConfig {
@@ -8,6 +7,7 @@ interface AppwriteConfig {
   databaseId: string;
   subjectCollectionId: string;
   userCollectionId: string;
+  chapterCollectionId: string;
 }
 
 // Create the appwrite configuration object
@@ -17,6 +17,7 @@ export const appwriteConfig: AppwriteConfig = {
   databaseId: "66c5f67b00032c5ebca5",
   subjectCollectionId: "66c5f743000e8a7ed429",
   userCollectionId: "66c5f943002bfcbfc381",
+  chapterCollectionId: "66c8be070035d6249e26",
 };
 
 // Initialize the client, account, and database objects
@@ -30,11 +31,8 @@ export const database = new Databases(client);
 // Function to sign up a user
 export const signUp = async (email: string, password: string, name: string) => {
   try {
-    // Generate a UUID as the userId
-    const userId = uuidv4();
-
-    // Create the user with the generated userId
-    const user = await account.create(userId, email, password, name);
+    const user = await account.create("unique()", email, password, name);
+    console.log("User sign up:", user);
     return user;
   } catch (error) {
     console.error("Error signing up:", error);
@@ -43,32 +41,10 @@ export const signUp = async (email: string, password: string, name: string) => {
 };
 
 // Function to sign in a user
-export const signIn = async (
-  userId: string,
-  email: string,
-  password: string
-) => {
+export const signIn = async (email: string, password: string) => {
   try {
-    // Query to find a user by email
-    const response = await database.listDocuments(
-      appwriteConfig.databaseId,
-      appwriteConfig.userCollectionId,
-      [Query.equal("email", email)]
-    );
-
-    if (response.documents.length === 0) {
-      throw new Error("User not found");
-    }
-
-    const user = response.documents[0];
-
-    // Check if the password matches
-    if (user.password !== password) {
-      throw new Error("Invalid credentials");
-    }
-
-    // Create a session for the user
-    const session = await account.createSession(email, password);
+    const session = await account.createEmailPasswordSession(email, password);
+    console.log("User sign in session:", session);
     return session;
   } catch (error) {
     console.error("Error signing in:", error);
@@ -93,6 +69,7 @@ export const fetchSubjects = async () => {
       appwriteConfig.databaseId,
       appwriteConfig.subjectCollectionId
     );
+    console.log("Fetched subjects:", response.documents);
     return response.documents;
   } catch (error) {
     console.error("Error fetching subjects:", error);

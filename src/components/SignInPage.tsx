@@ -11,7 +11,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { useSignIn } from "@/hooks/useSignIn"; // Use custom hook for sign in
+import { useSignIn } from "@/hooks/useSignIn";
 import { useRouter } from "next/navigation";
 
 const SignInPage = () => {
@@ -21,7 +21,7 @@ const SignInPage = () => {
       password: "",
     }
   );
-  const { signIn, error, success } = useSignIn(); // Use the custom hook
+  const { signIn, error, success } = useSignIn();
   const router = useRouter();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -32,6 +32,8 @@ const SignInPage = () => {
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
     const response = await signIn(formData.email, formData.password);
+
+    console.log("Sign in response:", response);
     if (response.success) {
       router.push("/");
     }
@@ -98,6 +100,6 @@ const SignInPage = () => {
       </Card>
     </div>
   );
-}; 
+};
 
 export default SignInPage;
