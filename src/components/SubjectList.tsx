@@ -2,10 +2,9 @@
 
 import React, { useEffect, useState } from "react";
 import SubjectCard from "./SubjectCard";
-import { fetchSubjects, fetchChapters, updateSubject } from "@/lib/appwrite";
+import { fetchSubjects, fetchChapters, deleteSubject } from "@/lib/appwrite"; // Import deleteSubject function
 import CreateModal from "./CreateModal";
-import EditModal from "./EditModal"; // Import your EditModal component
-import { Button } from "./ui/button";
+import EditModal from "./EditModal";
 
 const SubjectList = () => {
   const [subjects, setSubjects] = useState<any[]>([]);
@@ -18,6 +17,11 @@ const SubjectList = () => {
     const getSubjects = async () => {
       try {
         const subjectData = await fetchSubjects();
+        if (subjectData.length === 0) {
+          // No subjects found
+          setSubjects([]);
+          return;
+        }
         const subjectsWithProgress = await Promise.all(
           subjectData.map(async (subject) => {
             const chapterData = await fetchChapters(subject.$id);
@@ -63,7 +67,7 @@ const SubjectList = () => {
 
   const handleDelete = async (id: string) => {
     try {
-      // Handle delete logic
+      await deleteSubject(id); // Call delete function
       setSubjects((prevSubjects) =>
         prevSubjects.filter((subject) => subject.$id !== id)
       );
@@ -80,21 +84,36 @@ const SubjectList = () => {
 
   return (
     <div className='mt-20 p-4'>
-      <h1 className="mt-5 mb-5 ml-4 text-2xl font-semibold tracking-tighter">Subjects</h1>
-      <div className='grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 capitalize'>
-        {subjects.map((subject) => (
-          <SubjectCard
-            key={subject.$id}
-            id={subject.$id}
-            title={subject.title}
-            description={subject.description}
-            completedChapters={subject.completedChapters}
-            totalChapters={subject.totalChapters}
-            onEdit={() => handleEdit(subject)}
-            onDelete={handleDelete}
-          />
-        ))}
-      </div>
+      <h1 className='mt-5 mb-5 ml-4 text-2xl font-semibold tracking-tighter'>
+        Subjects
+      </h1>
+
+      {subjects.length === 0 ? (
+        <div className='flex flex-col items-center text-center'>
+          <p>No subjects found. Click below to create a new subject.</p>
+          <button
+            onClick={() => setIsCreateModalOpen(true)}
+            className='mt-4 px-4 py-2 bg-blue-500 text-white rounded'
+          >
+            Create Subject
+          </button>
+        </div>
+      ) : (
+        <div className='grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 capitalize'>
+          {subjects.map((subject) => (
+            <SubjectCard
+              key={subject.$id}
+              id={subject.$id}
+              title={subject.title}
+              description={subject.description}
+              completedChapters={subject.completedChapters}
+              totalChapters={subject.totalChapters}
+              onEdit={() => handleEdit(subject)}
+              onDelete={handleDelete}
+            />
+          ))}
+        </div>
+      )}
 
       <CreateModal
         isOpen={isCreateModalOpen}

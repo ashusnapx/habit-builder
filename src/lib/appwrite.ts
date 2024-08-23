@@ -12,12 +12,14 @@ interface AppwriteConfig {
 
 // Create the appwrite configuration object
 export const appwriteConfig: AppwriteConfig = {
-  endpoint: "https://cloud.appwrite.io/v1",
-  projectId: "66c5f57e00340dfa6c61",
-  databaseId: "66c5f67b00032c5ebca5",
-  subjectCollectionId: "66c5f743000e8a7ed429",
-  userCollectionId: "66c5f943002bfcbfc381",
-  chapterCollectionId: "66c8be070035d6249e26",
+  endpoint: process.env.NEXT_PUBLIC_APPWRITE_ENDPOINT || "",
+  projectId: process.env.NEXT_PUBLIC_APPWRITE_PROJECT_ID || "",
+  databaseId: process.env.NEXT_PUBLIC_APPWRITE_DATABASE_ID || "",
+  subjectCollectionId:
+    process.env.NEXT_PUBLIC_APPWRITE_SUBJECT_COLLECTION_ID || "",
+  userCollectionId: process.env.NEXT_PUBLIC_APPWRITE_USER_COLLECTION_ID || "",
+  chapterCollectionId:
+    process.env.NEXT_PUBLIC_APPWRITE_CHAPTER_COLLECTION_ID || "",
 };
 
 // Initialize the client, account, and database objects
@@ -27,6 +29,17 @@ const client = new Client()
 
 export const account = new Account(client);
 export const database = new Databases(client);
+
+// Function to get the current user ID
+export const getCurrentUserId = async () => {
+  try {
+    const session = await account.getSession("current");
+    return session.userId;
+  } catch (error) {
+    console.error("Error getting current user:", error);
+    throw error;
+  }
+};
 
 // Function to sign up a user
 export const signUp = async (email: string, password: string, name: string) => {
@@ -65,9 +78,11 @@ export const signOut = async () => {
 // Function to fetch subjects
 export const fetchSubjects = async () => {
   try {
+    const userId = await getCurrentUserId(); // Get current user ID
     const response = await database.listDocuments(
       appwriteConfig.databaseId,
-      appwriteConfig.subjectCollectionId
+      appwriteConfig.subjectCollectionId,
+      [Query.equal("user", userId)] // Filter subjects by user ID
     );
     console.log("Fetched subjects:", response.documents);
     return response.documents;
@@ -158,10 +173,13 @@ export const updateChapterCompletion = async (
 // Function to calculate subject progress
 export const calculateSubjectProgress = (chapters: any[]) => {
   const totalChapters = chapters.length;
-  const completedChapters = chapters.filter((chapter) => chapter.completed).length;
+  const completedChapters = chapters.filter(
+    (chapter) => chapter.completed
+  ).length;
   return totalChapters === 0 ? 0 : (completedChapters / totalChapters) * 100;
 };
 
+// Function to update a subject
 export const updateSubject = async (id: string, title: string) => {
   try {
     const response = await database.updateDocument(
@@ -178,3 +196,17 @@ export const updateSubject = async (id: string, title: string) => {
   }
 };
 
+// Function to delete a subject
+export const deleteSubject = async (id: string) => {
+  try {
+    await database.deleteDocument(
+      appwriteConfig.databaseId,
+      appwriteConfig.subjectCollectionId,
+      id
+    );
+    console.log("Subject deleted:", id);
+  } catch (error) {
+    console.error("Error deleting subject:", error);
+    throw error;
+  }
+};
