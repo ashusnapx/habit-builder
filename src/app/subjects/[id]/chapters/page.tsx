@@ -43,7 +43,7 @@ const ChaptersPage = () => {
   }, [chapters]);
 
   const handleAddChapter = async () => {
-    if (subjectId) {
+    if (subjectId && newChapterTitle.trim()) {
       try {
         await addChapter(subjectId, newChapterTitle);
         setNewChapterTitle("");
@@ -103,7 +103,10 @@ const ChaptersPage = () => {
           onChange={(e) => setNewChapterTitle(e.target.value)}
           placeholder='New Chapter Title'
         />
-        <Button onClick={handleAddChapter} disabled={addLoading}>
+        <Button
+          onClick={handleAddChapter}
+          disabled={addLoading || newChapterTitle.trim() === ""} // Disable button if title is empty
+        >
           {addLoading ? "Adding..." : "Add Chapter"}
         </Button>
         {addError && (
