@@ -86,7 +86,7 @@ const SignInPage = () => {
           </form>
         </CardContent>
         <CardFooter className='flex flex-col items-center space-y-4'>
-          <div className='flex flex-row items-center gap-9'>
+          <div className='flex flex-row items-center gap-9 w-full'>
             <Button onClick={handleSignIn} className='w-full'>
               Sign In
             </Button>

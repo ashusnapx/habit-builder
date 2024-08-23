@@ -97,7 +97,7 @@ const SignUpPage = () => {
           </form>
         </CardContent>
         <CardFooter className='flex flex-col items-center space-y-4'>
-          <div className='flex flex-row items-center gap-9'>
+          <div className='flex flex-row items-center gap-9 w-full'>
             <Button onClick={handleSignUp} className='w-full'>
               Sign Up
             </Button>
