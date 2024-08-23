@@ -1,8 +1,14 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
+import { useRouter } from "next/navigation"; // Import useRouter for navigation
 import SubjectCard from "./SubjectCard";
-import { fetchSubjects, fetchChapters, deleteSubject } from "@/lib/appwrite"; // Import deleteSubject function
+import {
+  fetchSubjects,
+  fetchChapters,
+  deleteSubject,
+  getCurrentUserId,
+} from "@/lib/appwrite"; // Import getCurrentUserId function
 import CreateModal from "./CreateModal";
 import EditModal from "./EditModal";
 
@@ -12,10 +18,23 @@ const SubjectList = () => {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [editingSubject, setEditingSubject] = useState<any>(null); // State to store the subject being edited
+  const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false); // State for user authentication status
+
+  const router = useRouter(); // Initialize useRouter
 
   useEffect(() => {
     const getSubjects = async () => {
       try {
+        // Check if the user is logged in
+        const userId = await getCurrentUserId();
+        setIsLoggedIn(!!userId); // Set authentication status
+
+        if (!userId) {
+          // User is not logged in, no need to fetch subjects
+          setLoading(false);
+          return;
+        }
+
         const subjectData = await fetchSubjects();
         if (subjectData.length === 0) {
           // No subjects found
@@ -80,6 +99,14 @@ const SubjectList = () => {
     setSubjects((prevSubjects) => [newSubject, ...prevSubjects]);
   };
 
+  const handleCreateSubjectClick = () => {
+    if (isLoggedIn) {
+      setIsCreateModalOpen(true);
+    } else {
+      router.push("/sign-in"); // Redirect to sign-in page
+    }
+  };
+
   if (loading) return <div>Loading...</div>;
 
   return (
@@ -92,7 +119,7 @@ const SubjectList = () => {
         <div className='flex flex-col items-center text-center'>
           <p>No subjects found. Click below to create a new subject.</p>
           <button
-            onClick={() => setIsCreateModalOpen(true)}
+            onClick={handleCreateSubjectClick}
             className='mt-4 px-4 py-2 bg-blue-500 text-white rounded'
           >
             Create Subject
