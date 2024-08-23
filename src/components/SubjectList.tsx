@@ -11,6 +11,7 @@ import {
 } from "@/lib/appwrite"; // Import getCurrentUserId function
 import CreateModal from "./CreateModal";
 import EditModal from "./EditModal";
+import { Skeleton } from "@/components/ui/skeleton"; // Import Skeleton component
 
 const SubjectList = () => {
   const [subjects, setSubjects] = useState<any[]>([]);
@@ -107,7 +108,29 @@ const SubjectList = () => {
     }
   };
 
-  if (loading) return <div>Loading...</div>;
+  if (loading) {
+    return (
+      <div className='mt-20 p-4'>
+        <h1 className='mt-5 mb-5 ml-4 text-2xl font-semibold tracking-tighter'>
+          Subjects
+        </h1>
+        <div className='grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3'>
+          {Array(6)
+            .fill(null)
+            .map((_, index) => (
+              <div key={index} className='p-4 border rounded shadow'>
+                <Skeleton className='h-12 w-12 rounded-full mb-4' />
+                <div className='space-y-4'>
+                  <Skeleton className='h-4 w-[250px]' />
+                  <Skeleton className='h-4 w-[200px]' />
+                  <Skeleton className='h-4 w-[150px]' />
+                </div>
+              </div>
+            ))}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className='mt-20 p-4'>

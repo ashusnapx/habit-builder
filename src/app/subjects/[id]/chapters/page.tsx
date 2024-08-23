@@ -9,6 +9,7 @@ import { useChapters } from "@/hooks/useChapter";
 import { useCreateChapter } from "@/hooks/useCreateChapter";
 import Confetti from "react-confetti";
 import useWindowSize from "react-use/lib/useWindowSize";
+import { Skeleton } from "@/components/ui/skeleton"; // Import Skeleton component
 
 const ChaptersPage = () => {
   const { id: subjectIdParam } = useParams();
@@ -47,17 +48,49 @@ const ChaptersPage = () => {
         await addChapter(subjectId, newChapterTitle);
         setNewChapterTitle("");
       } catch (err) {
-        console.error("Error adding chapter:", err);
+        // Handle error silently
       }
     }
   };
 
-  if (loading) return <div>Loading chapters...</div>;
-  if (error)
-    return <div className='text-red-500'>Error loading chapters: {error}</div>;
+  if (loading) {
+    return (
+      <div className='relative p-5 mt-20'>
+        {/* Always render Confetti but control its visibility via isConfettiActive */}
+        {isConfettiActive && <Confetti width={width} height={height} />}
+        <h1 className='text-3xl font-bold mb-2'>Chapters</h1>
+        <p>Loading chapters...</p>
+        <div className='flex flex-col gap-4'>
+          {Array(6)
+            .fill(null)
+            .map((_, index) => (
+              <div key={index} className='p-4 border rounded shadow'>
+                <Skeleton className='h-12 w-12 rounded-full mb-4' />
+                <div className='space-y-4'>
+                  <Skeleton className='h-4 w-[250px]' />
+                  <Skeleton className='h-4 w-[200px]' />
+                  <Skeleton className='h-4 w-[150px]' />
+                </div>
+              </div>
+            ))}
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className='relative p-5 mt-20'>
+        {/* Always render Confetti but control its visibility via isConfettiActive */}
+        {isConfettiActive && <Confetti width={width} height={height} />}
+        <h1 className='text-3xl font-bold mb-2'>Chapters</h1>
+        <p className='text-red-500'>Error loading chapters: {error}</p>
+      </div>
+    );
+  }
 
   return (
-    <div className='relative p-5'>
+    <div className='relative p-5 mt-20'>
       {/* Always render Confetti but control its visibility via isConfettiActive */}
       {isConfettiActive && <Confetti width={width} height={height} />}
       <h1 className='text-3xl font-bold mb-2'>Chapters</h1>

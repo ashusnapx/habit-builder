@@ -44,6 +44,16 @@ const Navbar = () => {
     }
   };
 
+  const handleSignIn = () => {
+    router.push("/sign-in");
+    closeModal(); // Close modal when redirecting to sign-in
+  };
+
+  const handleSignUp = () => {
+    router.push("/sign-up");
+    closeModal(); // Close modal when redirecting to sign-up
+  };
+
   const handleSubjectCreated = (newSubject: any) => {
     fetchSubjects().then((subjects) => {
       console.log("Updated subjects:", subjects);
@@ -88,7 +98,7 @@ const Navbar = () => {
           </div>
           <div className='flex flex-col md:flex-row items-center space-y-4 md:space-y-0 md:space-x-4 mt-4 md:mt-0 gap-3'>
             {isAuthenticated ? (
-              <div className='flex flex-col md:flex-row gap-2 md:gap-4'>
+              <div className='flex flex-col md:flex-row gap-2 md:gap-4 w-full'>
                 <Button
                   onClick={openModal}
                   className='flex items-center space-x-2 md:space-x-1'
@@ -106,12 +116,12 @@ const Navbar = () => {
               </div>
             ) : (
               <div className='flex flex-col md:flex-row gap-2 md:gap-4'>
-                <Button onClick={() => router.push("/sign-in")}>Sign In</Button>
-                <Button onClick={() => router.push("/sign-up")}>Sign Up</Button>
+                <Button onClick={handleSignIn}>Sign In</Button>
+                <Button onClick={handleSignUp}>Sign Up</Button>
               </div>
             )}
             <Link
-              href=''
+              href='https://ashusnapx.vercel.app/'
               className='flex items-center space-x-2 md:space-x-1 text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400'
             >
               <Github size={18} />

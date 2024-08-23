@@ -5,6 +5,7 @@ import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Navbar } from "@/components";
 import QueryClientWrapper from "@/components/QueryClientWrapper";
+import Footer from "@/components/Footer";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -30,6 +31,7 @@ export default function RootLayout({
           <QueryClientWrapper>
             <Navbar />
             {children}
+            <Footer/>
           </QueryClientWrapper>
         </ThemeProvider>
       </body>
