@@ -4,7 +4,6 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Navbar } from "@/components";
-import QueryClientWrapper from "@/components/QueryClientWrapper";
 import Footer from "@/components/Footer";
 
 const inter = Inter({ subsets: ["latin"] });
@@ -19,11 +18,11 @@ export const metadata: Metadata = {
     title: "HabitAI",
     description:
       "HabitAI - Your go-to app for managing and tracking habits with intelligent insights.",
-    url: "https://yourwebsite.com",
-    site_name: "HabitAI",
+    url: "https://habit-ai-lake.vercel.app/",
+    siteName: "HabitAI",
     images: [
       {
-        url: "https://yourwebsite.com/og-image.jpg",
+        url: "https://habit-ai-lake.vercel.app/og-image.jpg",
         width: 1200,
         height: 630,
         alt: "HabitAI - Manage and Track Your Habits",
@@ -37,20 +36,7 @@ export const metadata: Metadata = {
     title: "HabitAI",
     description:
       "HabitAI - Your go-to app for managing and tracking habits with intelligent insights.",
-    image: "https://yourwebsite.com/twitter-image.jpg",
-  },
-  structuredData: {
-    "@context": "https://schema.org",
-    "@type": "WebSite",
-    name: "HabitAI",
-    url: "https://yourwebsite.com",
-    description:
-      "HabitAI - Your go-to app for managing and tracking habits with intelligent insights.",
-    sameAs: [
-      "https://twitter.com/HabitAI",
-      "https://facebook.com/HabitAI",
-      // Add other social media profiles if available
-    ],
+    images: "https://habit-ai-lake.vercel.app/twitter-image.jpg",
   },
 };
 
@@ -74,11 +60,11 @@ export default function RootLayout({
           property='og:description'
           content='HabitAI - Your go-to app for managing and tracking habits with intelligent insights.'
         />
-        <meta property='og:url' content='https://yourwebsite.com' />
+        <meta property='og:url' content='https://habit-ai-lake.vercel.app/' />
         <meta property='og:site_name' content='HabitAI' />
         <meta
           property='og:image'
-          content='https://yourwebsite.com/og-image.jpg'
+          content='https://habit-ai-lake.vercel.app/og-image.jpg'
         />
         <meta name='twitter:card' content='summary_large_image' />
         <meta name='twitter:site' content='@HabitAI' />
@@ -90,7 +76,7 @@ export default function RootLayout({
         />
         <meta
           name='twitter:image'
-          content='https://yourwebsite.com/twitter-image.jpg'
+          content='https://habit-ai-lake.vercel.app/twitter-image.jpg'
         />
         <script
           type='application/ld+json'
@@ -99,7 +85,7 @@ export default function RootLayout({
               "@context": "https://schema.org",
               "@type": "WebSite",
               name: "HabitAI",
-              url: "https://yourwebsite.com",
+              url: "https://habit-ai-lake.vercel.app/",
               description:
                 "HabitAI - Your go-to app for managing and tracking habits with intelligent insights.",
               sameAs: [
@@ -110,7 +96,7 @@ export default function RootLayout({
             }),
           }}
         />
-        <link rel='canonical' href='https://yourwebsite.com' />
+        <link rel='canonical' href='https://habit-ai-lake.vercel.app/' />
       </head>
       <body className={`${inter.className} flex flex-col min-h-screen`}>
         <ThemeProvider
