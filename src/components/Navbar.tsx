@@ -11,15 +11,13 @@ import { useFetchUser } from "@/hooks/useFetchUser";
 import Link from "next/link";
 
 const Navbar = () => {
+  const user = useFetchUser();
   const [isModalOpen, setModalOpen] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isMenuOpen, setMenuOpen] = useState(false);
   const router = useRouter();
-  const user = useFetchUser();
 
-  useEffect(() => {
-    console.log("Fetched user:", user);
-  }, [user]);
+  useEffect(() => {}, [user]);
 
   const openModal = () => setModalOpen(true);
   const closeModal = () => setModalOpen(false);
@@ -46,12 +44,12 @@ const Navbar = () => {
 
   const handleSignIn = () => {
     router.push("/sign-in");
-    closeModal(); // Close modal when redirecting to sign-in
+    closeModal();
   };
 
   const handleSignUp = () => {
     router.push("/sign-up");
-    closeModal(); // Close modal when redirecting to sign-up
+    closeModal();
   };
 
   const handleSubjectCreated = (newSubject: any) => {
@@ -98,7 +96,7 @@ const Navbar = () => {
           </div>
           <div className='flex flex-col md:flex-row items-center space-y-4 md:space-y-0 md:space-x-4 mt-4 md:mt-0 gap-3'>
             {isAuthenticated ? (
-              <div className='flex flex-col md:flex-row gap-2 md:gap-4 w-full'>
+              <div className='flex flex-col md:flex-row gap-2 md:gap-4 w-fit'>
                 <Button
                   onClick={openModal}
                   className='flex items-center space-x-2 md:space-x-1'
@@ -127,7 +125,9 @@ const Navbar = () => {
               <Github size={18} />
               <span>Github</span>
             </Link>
-            <ModeToggle />
+            <div>
+              <ModeToggle />
+            </div>
           </div>
         </nav>
       </div>

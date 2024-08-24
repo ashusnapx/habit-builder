@@ -45,10 +45,8 @@ export const getCurrentUserId = async () => {
 export const signUp = async (email: string, password: string, name: string) => {
   try {
     const user = await account.create("unique()", email, password, name);
-    console.log("User sign up:", user);
     return user;
   } catch (error) {
-    console.error("Error signing up:", error);
     throw error;
   }
 };
@@ -57,10 +55,8 @@ export const signUp = async (email: string, password: string, name: string) => {
 export const signIn = async (email: string, password: string) => {
   try {
     const session = await account.createEmailPasswordSession(email, password);
-    console.log("User sign in session:", session);
     return session;
   } catch (error) {
-    console.error("Error signing in:", error);
     throw error;
   }
 };
@@ -69,8 +65,8 @@ export const signIn = async (email: string, password: string) => {
 export const signOut = async () => {
   try {
     await account.deleteSession("current");
+    window.location.reload();
   } catch (error) {
-    console.error("Error signing out:", error);
     throw error;
   }
 };

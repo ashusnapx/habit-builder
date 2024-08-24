@@ -1,4 +1,4 @@
-"use client"
+"use client";
 
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -18,7 +18,7 @@ import {
 interface CreateModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSubjectCreated: (newSubject: any) => void; // Callback to notify about the new subject
+  onSubjectCreated: (newSubjects: any[]) => void; // Callback to notify about the new subjects
 }
 
 const CreateModal: React.FC<CreateModalProps> = ({
@@ -27,7 +27,7 @@ const CreateModal: React.FC<CreateModalProps> = ({
   onSubjectCreated,
 }) => {
   const [formData, setFormData] = useState({
-    title: "",
+    titles: "",
   });
   const { createSubject } = useSubject(); // Use the hook to create a subject
 
@@ -39,17 +39,29 @@ const CreateModal: React.FC<CreateModalProps> = ({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const newSubject = await createSubject(formData.title);
-      onSubjectCreated(newSubject);
-      onClose();
-      window.location.reload();
+      const subjects = formData.titles
+        .split(",")
+        .map((title) => title.trim())
+        .filter((title) => title.length > 0);
+      const newSubjects = [];
+      for (const title of subjects) {
+        const newSubject = await createSubject(title);
+        newSubjects.push(newSubject);
+      }
+      onSubjectCreated(newSubjects);
+      onClose(); // Close the modal first
+      window.location.reload(); // Reload the page
     } catch (error) {
-      console.error("Failed to create subject:", error);
+      console.error("Failed to create subjects:", error);
     }
   };
 
   const formFields = [
-    { id: "title", label: "Subject Title", placeholder: "Enter Subject Title" },
+    {
+      id: "titles",
+      label: "Subject Titles",
+      placeholder: "Enter subject titles separated by commas",
+    },
   ];
 
   const handleOutsideClick = (event: React.MouseEvent) => {
@@ -69,14 +81,15 @@ const CreateModal: React.FC<CreateModalProps> = ({
       <Card className='w-full max-w-md p-4 relative'>
         <CardHeader className='flex flex-row items-center justify-between'>
           <div>
-            <CardTitle>Create New Subject</CardTitle>
+            <CardTitle>Create New Subjects</CardTitle>
             <CardDescription className='mt-2'>
-              Fill out the form below to create a new subject.
+              Enter the names of subjects you want to create, separated by
+              commas.
             </CardDescription>
           </div>
           <Button
             variant='destructive'
-            className=' rounded-full'
+            className='rounded-full'
             onClick={onClose}
           >
             <X className='w-8 h-8' />
@@ -99,16 +112,14 @@ const CreateModal: React.FC<CreateModalProps> = ({
                 </div>
               ))}
             </div>
+            <CardFooter className='flex justify-between mt-4'>
+              <Button variant='outline' onClick={onClose}>
+                Cancel
+              </Button>
+              <Button type='submit'>Create</Button>
+            </CardFooter>
           </form>
         </CardContent>
-        <CardFooter className='flex justify-between'>
-          <Button variant='outline' onClick={onClose}>
-            Cancel
-          </Button>
-          <Button type='submit' onClick={handleSubmit}>
-            Create
-          </Button>
-        </CardFooter>
       </Card>
     </div>
   );

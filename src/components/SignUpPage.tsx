@@ -13,6 +13,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { useSignUp } from "@/hooks/useSignUp";
+import { useFetchUser } from "@/hooks/useFetchUser";
+import { signIn } from "@/lib/appwrite";
 
 const SignUpPage = () => {
   const [formData, setFormData] = useState({
@@ -23,12 +25,16 @@ const SignUpPage = () => {
 
   const { signUp, error, success } = useSignUp(); // Use the custom hook
   const router = useRouter();
+  const { user } = useFetchUser();
+
+  console.table(user);
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     const { email, password, name } = formData;
     const response = await signUp(email, password, name);
     if (response.success) {
+      await signIn(email, password);
       router.push("/");
     }
   };

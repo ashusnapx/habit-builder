@@ -11,7 +11,7 @@ const Footer = () => {
         <div className='flex flex-col md:flex-row justify-between items-center'>
           <div className='flex flex-col items-center md:items-start'>
             <h2 className='text-2xl font-bold mb-2'>Habit.AI</h2>
-            <p className='mb-4'>Crafting habits for a better tomorrow.</p>
+            <p className='mb-4'>Baked with ❤️ by Ashutosh Kumar</p>
             <div className='flex space-x-4 mb-4'>
               <Link
                 href='https://twitter.com/ashusnapx'

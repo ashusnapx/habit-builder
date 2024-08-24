@@ -21,14 +21,14 @@ const ChapterCard = ({
   completed,
   onCompleteChange,
 }: ChapterCardProps) => (
-  <Card className='w-full max-w-sm mx-auto bg-white dark:bg-gray-800 shadow-lg rounded-lg'>
+  <Card className='w-full max-w-sm mx-auto bg-white dark:bg-gray-800 shadow-lg rounded-lg tracking-tighter'>
     <CardHeader className='p-4'>
-      <CardTitle className='text-lg font-semibold text-gray-900 dark:text-gray-100'>
+      <CardTitle className='font-semibold text-gray-900 dark:text-gray-100 capitalize text-2xl tracking-wider'>
         {title}
       </CardTitle>
     </CardHeader>
     <CardContent className='p-4'>
-      <p className='text-sm text-gray-600 dark:text-gray-400'>
+      <p className='text-md text-gray-600 dark:text-gray-400'>
         Status: {completed ? "Completed" : "Not Completed"}
       </p>
     </CardContent>
