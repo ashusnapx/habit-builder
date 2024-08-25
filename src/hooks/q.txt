@@ -1,0 +1,317 @@
+import { useState, useEffect, useCallback } from "react";
+import { fetchChapters, updateChapterCompletion } from "@/lib/appwrite";
+
+export const useChapters = (subjectId: string) => {
+  const [chapters, setChapters] = useState<any[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!subjectId) return;
+
+    const getChapters = async () => {
+      setLoading(true);
+      try {
+        const chapters = await fetchChapters(subjectId);
+        setChapters(chapters);
+      } catch (error) {
+        setError("Error loading chapters");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    getChapters();
+  }, [subjectId]);
+
+  const handleCompleteChange = useCallback(
+    async (id: string, completed: boolean) => {
+      try {
+        await updateChapterCompletion(id, completed);
+        setChapters((prevChapters) =>
+          prevChapters.map((chapter) =>
+            chapter.$id === id
+              ? {
+                  ...chapter,
+                  completed,
+                  progress: completed ? 100 : chapter.progress,
+                }
+              : chapter
+          )
+        );
+      } catch (error) {
+        console.error("Error updating chapter completion:", error);
+      }
+    },
+    []
+  );
+
+  return {
+    chapters,
+    loading,
+    error,
+    handleCompleteChange,
+  };
+};
+
+
+"use client";
+
+import { useState } from "react";
+import { createChapter } from "@/lib/appwrite"; // Import the createChapter function
+
+export const useCreateChapter = () => {
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<Error | null>(null);
+
+  const addChapter = async (subjectId: string, title: string) => {
+    setLoading(true);
+    setError(null);
+    try {
+      await createChapter(subjectId, title);
+    } catch (err) {
+      setError(err as Error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return { addChapter, loading, error };
+};
+
+
+import { useState, useEffect } from "react";
+import { fetchSubjects as appwriteFetchSubjects } from "@/lib/appwrite";
+
+export const useFetchSubjects = () => {
+  const [subjects, setSubjects] = useState<any[]>([]);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchSubjects = async () => {
+      try {
+        const subjects = await appwriteFetchSubjects();
+        setSubjects(subjects);
+        setError(null);
+      } catch (err) {
+        setError("Failed to fetch subjects.");
+        setSubjects([]);
+      }
+    };
+
+    fetchSubjects();
+  }, []);
+
+  return { subjects, error };
+};
+
+
+import { useState } from "react";
+import { signIn as appwriteSignIn } from "@/lib/appwrite";
+
+export const useSignIn = () => {
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
+
+  const signIn = async (email: string, password: string) => {
+    try {
+      const response = await appwriteSignIn(email, password);
+      console.log("Appwrite signIn response:", response);
+      setSuccess("Sign in successful!");
+      setError(null);
+      return { success: true, data: response };
+    } catch (err: any) {
+      const errorMessage =
+        err.message || "Sign in failed. Please check your credentials.";
+      console.log("Sign in error:", err);
+      setError(errorMessage);
+      setSuccess(null);
+      return { success: false };
+    }
+  };
+
+  return { signIn, error, success };
+};
+
+import { useState, useCallback } from "react";
+import { appwriteConfig, database, getCurrentUserId } from "@/lib/appwrite";
+
+export const useSubject = () => {
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [subject, setSubject] = useState<any | null>(null);
+
+  // Fetch a subject by its ID
+  const fetchSubject = useCallback(async (id: string) => {
+    setLoading(true);
+    try {
+      const response = await database.getDocument(
+        appwriteConfig.databaseId,
+        appwriteConfig.subjectCollectionId,
+        id
+      );
+      setSubject(response);
+      return response;
+    } catch (error) {
+      setError("Failed to fetch subject.");
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  // Create a new subject
+  const createSubject = async (title: string) => {
+    setLoading(true);
+    try {
+      const now = new Date().toISOString();
+      const userId = await getCurrentUserId(); // Fetch user ID from Appwrite
+
+      await database.createDocument(
+        appwriteConfig.databaseId,
+        appwriteConfig.subjectCollectionId,
+        "unique()",
+        {
+          title,
+          createdAt: now,
+          updatedAt: now,
+          user: userId,
+        }
+      );
+    } catch (error) {
+      setError("Failed to create subject.");
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Update an existing subject
+  const updateSubject = async (id: string, updates: { title?: string }) => {
+    setLoading(true);
+    try {
+      const now = new Date().toISOString();
+
+      await database.updateDocument(
+        appwriteConfig.databaseId,
+        appwriteConfig.subjectCollectionId,
+        id,
+        {
+          ...updates,
+          updatedAt: now,
+        }
+      );
+    } catch (error) {
+      setError("Failed to update subject.");
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Delete a subject by its ID
+  const deleteSubject = async (id: string) => {
+    setLoading(true);
+    try {
+      await database.deleteDocument(
+        appwriteConfig.databaseId,
+        appwriteConfig.subjectCollectionId,
+        id
+      );
+    } catch (error) {
+      setError("Failed to delete subject.");
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return {
+    createSubject,
+    updateSubject,
+    deleteSubject,
+    fetchSubject,
+    subject,
+    loading,
+    error,
+  };
+};
+
+
+// hooks/useSubjectsProgress.ts
+import { useState, useEffect, ChangeEvent } from "react";
+import { fetchSubjects, fetchChapters } from "@/lib/appwrite";
+
+export const useSubjectsProgress = () => {
+  const [subjects, setSubjects] = useState<any[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [targetDate, setTargetDate] = useState<Date | null>(null);
+  const [dailyTarget, setDailyTarget] = useState<number>(0);
+  const [totalChapters, setTotalChapters] = useState<number>(0);
+  const [completedChapters, setCompletedChapters] = useState<number>(0);
+
+  const calculateDailyTarget = () => {
+    if (targetDate && totalChapters > 0) {
+      const today = new Date();
+      const timeDiff = targetDate.getTime() - today.getTime();
+      const daysRemaining = Math.ceil(timeDiff / (1000 * 3600 * 24));
+      if (daysRemaining > 0) {
+        setDailyTarget(Math.ceil(totalChapters / daysRemaining));
+      }
+    }
+  };
+
+  const handleTargetDateChange = (event: ChangeEvent<HTMLInputElement>) => {
+    const date = new Date(event.target.value);
+    setTargetDate(date);
+    calculateDailyTarget();
+  };
+
+  useEffect(() => {
+    const getSubjects = async () => {
+      try {
+        const subjectData = await fetchSubjects();
+        let total = 0;
+        let completed = 0;
+
+        const subjectsWithProgress = await Promise.all(
+          subjectData.map(async (subject) => {
+            const chapterData = await fetchChapters(subject.$id);
+            total += chapterData.length;
+            completed += chapterData.filter(
+              (chapter) => chapter.completed
+            ).length;
+            return {
+              ...subject,
+              completedChapters: chapterData.filter(
+                (chapter) => chapter.completed
+              ).length,
+              totalChapters: chapterData.length,
+            };
+          })
+        );
+
+        setSubjects(subjectsWithProgress);
+        setTotalChapters(total);
+        setCompletedChapters(completed);
+      } catch (error) {
+        console.error("Failed to fetch subjects:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    getSubjects();
+  }, []);
+
+  return {
+    subjects,
+    loading,
+    targetDate,
+    dailyTarget,
+    totalChapters,
+    completedChapters,
+    handleTargetDateChange,
+  };
+};
+

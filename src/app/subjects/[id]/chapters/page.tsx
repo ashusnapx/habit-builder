@@ -8,16 +8,15 @@ import Confetti from "react-confetti";
 import useWindowSize from "react-use/lib/useWindowSize";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useChapters, useCreateChapter, useSubject } from "@/hooks";
-import { ChapterCard } from "@/components";
+import ChapterCard from "@/components/ChapterCard"; // Updated import
 
 const ChaptersPage = () => {
   const { id: subjectIdParam } = useParams();
   const subjectId = Array.isArray(subjectIdParam)
     ? subjectIdParam[0]
     : subjectIdParam;
-  const { chapters, loading, error, handleCompleteChange } = useChapters(
-    subjectId as string
-  );
+  const { chapters, loading, error, handleCompleteChange, refetchChapters } =
+    useChapters(subjectId as string);
   const {
     addChapter,
     loading: addLoading,
@@ -60,6 +59,7 @@ const ChaptersPage = () => {
           .filter((title) => title.length > 0);
         await Promise.all(titles.map((title) => addChapter(subjectId, title)));
         setNewChapters("");
+        refetchChapters(); // Refetch chapters after adding new ones
       } catch (err) {
         console.error("Failed to add chapters:", err);
       }
@@ -144,32 +144,17 @@ const ChaptersPage = () => {
       </div>
       <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6'>
         {chapters.map((chapter) => (
-          <div
+          <ChapterCard
             key={chapter.$id}
-            className='p-4 border border-gray-200 rounded-lg shadow-md bg-white dark:border-gray-700 dark:bg-gray-800'
-          >
-            <div className='flex items-center justify-between'>
-              <h2 className='text-lg font-semibold dark:text-gray-300'>
-                {chapter.title}
-              </h2>
-              <input
-                type='checkbox'
-                checked={chapter.completed}
-                onChange={(e) =>
-                  handleCompleteChange(chapter.$id, e.target.checked)
-                }
-                className='ml-2'
-              />
-            </div>
-            <p className='text-gray-600 dark:text-gray-400 mt-2'>
-              Progress: {chapter.progress}%
-            </p>
-          </div>
+            id={chapter.$id}
+            title={chapter.title}
+            completed={chapter.completed}
+            onCompleteChange={handleCompleteChange}
+          />
         ))}
       </div>
     </div>
   );
 };
-
 
 export default ChaptersPage;

@@ -6,23 +6,23 @@ export const useChapters = (subjectId: string) => {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (!subjectId) return;
-
-    const getChapters = async () => {
-      setLoading(true);
-      try {
-        const chapters = await fetchChapters(subjectId);
-        setChapters(chapters);
-      } catch (error) {
-        setError("Error loading chapters");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    getChapters();
+  const getChapters = useCallback(async () => {
+    setLoading(true);
+    try {
+      const chapters = await fetchChapters(subjectId);
+      setChapters(chapters);
+    } catch (error) {
+      setError("Error loading chapters");
+    } finally {
+      setLoading(false);
+    }
   }, [subjectId]);
+
+  useEffect(() => {
+    if (subjectId) {
+      getChapters();
+    }
+  }, [subjectId, getChapters]);
 
   const handleCompleteChange = useCallback(
     async (id: string, completed: boolean) => {
@@ -51,5 +51,6 @@ export const useChapters = (subjectId: string) => {
     loading,
     error,
     handleCompleteChange,
+    refetchChapters: getChapters,
   };
 };

@@ -154,14 +154,19 @@ export const updateChapterCompletion = async (
   completed: boolean
 ) => {
   try {
+    const payload = {
+      completed,
+      progress: completed ? 100 : 0,
+    };
+
+    console.log("Updating chapter with ID:", id);
+    console.log("Payload for update:", payload);
+
     await database.updateDocument(
       appwriteConfig.databaseId,
       appwriteConfig.chapterCollectionId,
       id,
-      {
-        completed,
-        progress: completed ? 100 : 0,
-      }
+      payload
     );
   } catch (error) {
     console.error("Error updating chapter completion:", error);
@@ -179,13 +184,13 @@ export const calculateSubjectProgress = (chapters: any[]) => {
 };
 
 // Function to update a subject
-export const updateSubject = async (id: string, title: string) => {
+export const updateSubject = async (id: string, updates: { progress?: number }) => {
   try {
     const response = await database.updateDocument(
       appwriteConfig.databaseId,
       appwriteConfig.subjectCollectionId,
       id,
-      { title }
+      updates
     );
     console.log("Subject updated:", response);
     return response;
