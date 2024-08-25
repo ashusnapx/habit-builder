@@ -85,23 +85,27 @@ const ChaptersPage = () => {
 
   if (loading) {
     return (
-      <div className='relative p-5 mt-20'>
+      <div className='relative p-5 mt-20 dark:bg-gray-900 dark:text-gray-100'>
         {isConfettiActive && <Confetti width={width} height={height} />}
-        <h1 className='text-4xl font-extrabold mb-4 text-gray-600'>Chapters</h1>
-        <p className='text-lg text-gray-600 mb-4'>Loading chapters...</p>
+        <h1 className='text-4xl font-extrabold mb-4 text-gray-600 dark:text-gray-300'>
+          Chapters
+        </h1>
+        <p className='text-lg text-gray-600 mb-4 dark:text-gray-400'>
+          Loading chapters...
+        </p>
         <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6'>
           {Array(6)
             .fill(null)
             .map((_, index) => (
               <div
                 key={index}
-                className='p-4 border border-gray-200 rounded-lg shadow-md bg-white'
+                className='p-4 border border-gray-200 rounded-lg shadow-md bg-white dark:border-gray-700 dark:bg-gray-800'
               >
-                <Skeleton className='h-12 w-12 rounded-full mb-4' />
+                <Skeleton className='h-12 w-12 rounded-full mb-4 dark:bg-gray-600' />
                 <div className='space-y-4'>
-                  <Skeleton className='h-4 w-[250px]' />
-                  <Skeleton className='h-4 w-[200px]' />
-                  <Skeleton className='h-4 w-[150px]' />
+                  <Skeleton className='h-4 w-[250px] dark:bg-gray-600' />
+                  <Skeleton className='h-4 w-[200px] dark:bg-gray-600' />
+                  <Skeleton className='h-4 w-[150px] dark:bg-gray-600' />
                 </div>
               </div>
             ))}
