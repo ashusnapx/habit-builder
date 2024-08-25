@@ -9,6 +9,7 @@ import { account, fetchSubjects, signOut } from "@/lib/appwrite";
 import { useRouter } from "next/navigation";
 import { useFetchUser } from "@/hooks/useFetchUser";
 import Link from "next/link";
+import TargetModal from "./TargetModal";
 
 const Navbar = () => {
   const [isModalOpen, setModalOpen] = useState(false);
@@ -51,7 +52,7 @@ const Navbar = () => {
 
   const handleSubjectCreated = (newSubject: any) => {
     fetchSubjects().then((subjects) => {
-      console.log("Updated subjects:", subjects);
+      // console.log("Updated subjects:", subjects);
     });
   };
 
@@ -65,20 +66,23 @@ const Navbar = () => {
         <div className='flex items-center justify-between w-full md:w-auto space-x-4'>
           <Link
             href='/'
-            className='text-2xl md:text-3xl font-bold text-gray-900 dark:text-white'
+            className='text-2xl md:text-3xl font-bold text-gray-900 dark:text-white flex flex-col'
           >
-            Habit<span className="text-blue-600">.AI</span>
+            <h1>
+              Habit.<span className='text-blue-600 italic'>AI</span>
+            </h1>
+            <span className='text-sm font-normal text-gray-600 dark:text-gray-400'>
+              By Ashutosh Kumar
+            </span>
           </Link>
-          <span className='text-sm text-gray-600 dark:text-gray-400 hidden md:inline'>
-            By Ashutosh Kumar
-          </span>
 
-          <button
+          <Button
+            variant='outline'
             onClick={toggleMenu}
             className='md:hidden text-gray-600 dark:text-gray-400 focus:outline-none'
           >
             {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
-          </button>
+          </Button>
         </div>
 
         <nav
@@ -88,22 +92,22 @@ const Navbar = () => {
               : "hidden"
           } md:block`}
         >
-          {/* <div className='text-base text-center font-semibold text-gray-900 dark:text-white mt-4 md:mt-0'>
-            Welcome {user?.user?.name || "Guest"}
-          </div> */}
           <div className='flex flex-col md:flex-row items-center space-y-4 md:space-y-0 md:space-x-4 mt-4 md:mt-0 gap-3'>
             {isAuthenticated ? (
-              <div className='flex flex-col md:flex-row gap-2 md:gap-4 w-fit'>
+              <div className='flex flex-col md:flex-row gap-2 md:gap-2 w-fit'>
+                <TargetModal />
                 <Button
                   onClick={openModal}
                   className='flex items-center space-x-2 md:space-x-1'
+                  variant='outline'
                 >
                   <PlusIcon size={18} />
                   <span>Create</span>
                 </Button>
                 <Button
                   onClick={handleSignOut}
-                  className='flex items-center space-x-2 md:space-x-1'
+                  className='flex items-center space-x-2 md:space-x-1 hover:bg-red-500 hover:text-white'
+                  variant='outline'
                 >
                   <LogOutIcon size={18} />
                   <span>Sign Out</span>

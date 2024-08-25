@@ -8,6 +8,7 @@ interface AppwriteConfig {
   subjectCollectionId: string;
   userCollectionId: string;
   chapterCollectionId: string;
+  targetCollectionId:string;
 }
 
 // Create the appwrite configuration object
@@ -20,6 +21,8 @@ export const appwriteConfig: AppwriteConfig = {
   userCollectionId: process.env.NEXT_PUBLIC_APPWRITE_USER_COLLECTION_ID || "",
   chapterCollectionId:
     process.env.NEXT_PUBLIC_APPWRITE_CHAPTER_COLLECTION_ID || "",
+  targetCollectionId:
+    process.env.NEXT_PUBLIC_APPWRITE_TARGET_COLLECTION_ID || "",
 };
 
 // Initialize the client, account, and database objects
@@ -203,6 +206,28 @@ export const deleteSubject = async (id: string) => {
     console.log("Subject deleted:", id);
   } catch (error) {
     console.error("Error deleting subject:", error);
+    throw error;
+  }
+};
+
+export const createTarget = async (targetData: {
+  chaptersPerDay: number;
+  totalChapters: number;
+  targetDate: string;
+  createdAt: string;
+  user: string;
+}) => {
+  try {
+    const response = await database.createDocument(
+      appwriteConfig.databaseId,
+      appwriteConfig.targetCollectionId,
+      "unique()",
+      targetData
+    );
+    console.log("Target created:", response);
+    return response;
+  } catch (error) {
+    console.error("Error creating target:", error);
     throw error;
   }
 };

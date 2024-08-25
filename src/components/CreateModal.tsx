@@ -5,15 +5,15 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { X } from "lucide-react";
-import { useSubject } from "@/hooks/useSubject";
 import {
-  Card,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-  CardContent,
-  CardFooter,
-} from "./ui/card";
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  DialogDescription,
+} from "@/components/ui/dialog";
+import { useSubject } from "@/hooks/useSubject";
 
 interface CreateModalProps {
   isOpen: boolean;
@@ -64,64 +64,45 @@ const CreateModal: React.FC<CreateModalProps> = ({
     },
   ];
 
-  const handleOutsideClick = (event: React.MouseEvent) => {
-    if ((event.target as HTMLElement).id === "modal-overlay") {
-      onClose();
-    }
-  };
-
   if (!isOpen) return null;
 
   return (
-    <div
-      id='modal-overlay'
-      className='fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50'
-      onClick={handleOutsideClick}
-    >
-      <Card className='w-full max-w-md p-4 relative'>
-        <CardHeader className='flex flex-row items-center justify-between'>
-          <div>
-            <CardTitle>Create New Subjects</CardTitle>
-            <CardDescription className='mt-2'>
-              Enter the names of subjects you want to create, separated by
-              commas.
-            </CardDescription>
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogTrigger asChild>
+        {/* Optional trigger button or element */}
+      </DialogTrigger>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Create New Subjects</DialogTitle>
+          <DialogDescription>
+            Enter the names of subjects you want to create, separated by commas.
+          </DialogDescription>
+        </DialogHeader>
+        <form onSubmit={handleSubmit}>
+          <div className='space-y-4'>
+            {formFields.map((field) => (
+              <div key={field.id} className='flex flex-col space-y-3'>
+                <Label htmlFor={field.id}>{field.label}</Label>
+                <Input
+                  id={field.id}
+                  value={formData[field.id as keyof typeof formData]}
+                  onChange={handleChange}
+                  placeholder={field.placeholder}
+                  required
+                  className='border rounded-lg'
+                />
+              </div>
+            ))}
           </div>
-          <Button
-            variant='destructive'
-            className='rounded-full'
-            onClick={onClose}
-          >
-            <X className='w-8 h-8' />
-          </Button>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit}>
-            <div className='space-y-4'>
-              {formFields.map((field) => (
-                <div key={field.id} className='flex flex-col space-y-3'>
-                  <Label htmlFor={field.id}>{field.label}</Label>
-                  <Input
-                    id={field.id}
-                    value={formData[field.id as keyof typeof formData]}
-                    onChange={handleChange}
-                    placeholder={field.placeholder}
-                    required
-                    className='border rounded-lg'
-                  />
-                </div>
-              ))}
-            </div>
-            <CardFooter className='flex justify-between mt-4'>
-              <Button variant='outline' onClick={onClose}>
-                Cancel
-              </Button>
-              <Button type='submit'>Create</Button>
-            </CardFooter>
-          </form>
-        </CardContent>
-      </Card>
-    </div>
+          <div className='flex justify-between mt-4'>
+            <Button variant='outline' type='button' onClick={onClose}>
+              Cancel
+            </Button>
+            <Button type='submit'>Create</Button>
+          </div>
+        </form>
+      </DialogContent>
+    </Dialog>
   );
 };
 

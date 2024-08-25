@@ -1,4 +1,3 @@
-// src/app/layout.tsx
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
@@ -47,58 +46,10 @@ export default function RootLayout({
 }) {
   return (
     <html lang='en'>
-      <head>
-        <meta charSet='UTF-8' />
-        <meta name='viewport' content='width=device-width, initial-scale=1' />
-        <meta
-          name='description'
-          content='HabitAI - Your go-to app for managing and tracking habits with intelligent insights.'
-        />
-        <meta name='robots' content='index, follow' />
-        <meta property='og:title' content='HabitAI' />
-        <meta
-          property='og:description'
-          content='HabitAI - Your go-to app for managing and tracking habits with intelligent insights.'
-        />
-        <meta property='og:url' content='https://habit-ai-lake.vercel.app/' />
-        <meta property='og:site_name' content='HabitAI' />
-        <meta
-          property='og:image'
-          content='https://habit-ai-lake.vercel.app/og-image.jpg'
-        />
-        <meta name='twitter:card' content='summary_large_image' />
-        <meta name='twitter:site' content='@HabitAI' />
-        <meta name='twitter:creator' content='@HabitAI' />
-        <meta name='twitter:title' content='HabitAI' />
-        <meta
-          name='twitter:description'
-          content='HabitAI - Your go-to app for managing and tracking habits with intelligent insights.'
-        />
-        <meta
-          name='twitter:image'
-          content='https://habit-ai-lake.vercel.app/twitter-image.jpg'
-        />
-        <script
-          type='application/ld+json'
-          dangerouslySetInnerHTML={{
-            __html: JSON.stringify({
-              "@context": "https://schema.org",
-              "@type": "WebSite",
-              name: "HabitAI",
-              url: "https://habit-ai-lake.vercel.app/",
-              description:
-                "HabitAI - Your go-to app for managing and tracking habits with intelligent insights.",
-              sameAs: [
-                "https://twitter.com/HabitAI",
-                "https://facebook.com/HabitAI",
-                // Add other social media profiles if available
-              ],
-            }),
-          }}
-        />
-        <link rel='canonical' href='https://habit-ai-lake.vercel.app/' />
-      </head>
-      <body className={`${inter.className} flex flex-col min-h-screen`}>
+      <head>{/* Meta tags here */}</head>
+      <body
+        className={`${inter.className} flex flex-col min-h-screen bg-gray-50 dark:bg-gray-900`}
+      >
         <ThemeProvider
           attribute='class'
           defaultTheme='system'
@@ -106,7 +57,7 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <Navbar />
-          <main className='flex-grow'>{children}</main>
+          <main className='flex-grow p-4 sm:p-6 lg:p-8'>{children}</main>
           <Footer />
         </ThemeProvider>
       </body>

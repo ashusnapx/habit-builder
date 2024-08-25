@@ -13,6 +13,8 @@ import CreateModal from "./CreateModal";
 import EditModal from "./EditModal";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useFetchUser } from "@/hooks";
+import TargetModal from "./TargetModal";
+import DeleteConfirmationDialog from "./DeleteConfirmationDialog"; // Import the new component
 
 const SubjectList = () => {
   const user = useFetchUser();
@@ -20,27 +22,26 @@ const SubjectList = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [editingSubject, setEditingSubject] = useState<any>(null); // State to store the subject being edited
-  const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false); // State for user authentication status
+  const [editingSubject, setEditingSubject] = useState<any>(null);
+  const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false); // State for delete dialog
+  const [deletingSubject, setDeletingSubject] = useState<any>(null); // State to store subject being deleted
 
-  const router = useRouter(); // Initialize useRouter
+  const router = useRouter();
 
   useEffect(() => {
     const getSubjects = async () => {
       try {
-        // Check if the user is logged in
         const userId = await getCurrentUserId();
-        setIsLoggedIn(!!userId); // Set authentication status
+        setIsLoggedIn(!!userId);
 
         if (!userId) {
-          // User is not logged in, no need to fetch subjects
           setLoading(false);
           return;
         }
 
         const subjectData = await fetchSubjects();
         if (subjectData.length === 0) {
-          // No subjects found
           setSubjects([]);
           return;
         }
@@ -87,14 +88,22 @@ const SubjectList = () => {
     );
   };
 
-  const handleDelete = async (id: string) => {
+  const handleDeleteClick = (subject: any) => {
+    setDeletingSubject(subject);
+    setIsDeleteDialogOpen(true);
+  };
+
+  const handleDeleteConfirm = async () => {
     try {
-      await deleteSubject(id); // Call delete function
+      await deleteSubject(deletingSubject.$id);
       setSubjects((prevSubjects) =>
-        prevSubjects.filter((subject) => subject.$id !== id)
+        prevSubjects.filter((subject) => subject.$id !== deletingSubject.$id)
       );
     } catch (error) {
       console.error("Failed to delete subject:", error);
+    } finally {
+      setIsDeleteDialogOpen(false);
+      setDeletingSubject(null);
     }
   };
 
@@ -106,11 +115,10 @@ const SubjectList = () => {
     if (isLoggedIn) {
       setIsCreateModalOpen(true);
     } else {
-      router.push("/sign-in"); // Redirect to sign-in page
+      router.push("/sign-in");
     }
   };
 
-  // Compute totals
   const totalSubjects = subjects.length;
   const totalChapters = subjects.reduce(
     (acc, subject) => acc + subject.totalChapters,
@@ -161,11 +169,11 @@ const SubjectList = () => {
 
         <p className='mt-0 md:mt-5 mb-5 ml-4 text-2xl font-semibold tracking-tighter '>
           <span className='font-semibold'>
-            Total <span className="text-blue-600">Subjects</span>:
+            Total <span className='text-blue-600'>Subjects</span>:
           </span>{" "}
           {totalSubjects} <br />
           <span className='font-semibold'>
-            Total <span className="text-blue-600">Chapters</span>:
+            Total <span className='text-blue-600'>Chapters</span>:
           </span>{" "}
           {totalChapters}
         </p>
@@ -192,7 +200,7 @@ const SubjectList = () => {
               completedChapters={subject.completedChapters}
               totalChapters={subject.totalChapters}
               onEdit={() => handleEdit(subject)}
-              onDelete={handleDelete}
+              onDelete={() => handleDeleteClick(subject)}
             />
           ))}
         </div>
@@ -210,6 +218,15 @@ const SubjectList = () => {
           onClose={handleEditModalClose}
           onSubjectUpdated={handleSubjectUpdated}
           subject={editingSubject}
+        />
+      )}
+
+      {deletingSubject && (
+        <DeleteConfirmationDialog
+          isOpen={isDeleteDialogOpen}
+          onClose={() => setIsDeleteDialogOpen(false)}
+          onDeleteConfirm={handleDeleteConfirm}
+          subjectTitle={deletingSubject.title}
         />
       )}
     </div>

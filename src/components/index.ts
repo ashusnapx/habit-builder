@@ -11,6 +11,7 @@ import SignUpPage from "./SignUpPage";
 import SubjectCard from "./SubjectCard";
 import SubjectList from "./SubjectList";
 import ProgressBar from "./ProgressBar";
+import DeleteConfirmationDialog from "./DeleteConfirmationDialog";
 
 export {
   Navbar,
@@ -26,5 +27,6 @@ export {
   SubjectCard,
   SubjectList,
   ProgressBar,
+  DeleteConfirmationDialog,
 };
 

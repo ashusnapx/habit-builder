@@ -1,6 +1,14 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { updateSubject } from "@/lib/appwrite"; // Import your update subject function
@@ -39,12 +47,12 @@ const EditModal = ({
     }
   };
 
-  if (!isOpen) return null;
-
   return (
-    <div className='fixed inset-0 flex items-center justify-center z-50'>
-      <div className='bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg'>
-        <h2 className='text-xl font-semibold mb-4'>Edit Subject</h2>
+    <Dialog open={isOpen} onOpenChange={onClose} >
+      <DialogContent className="m-4">
+        <DialogHeader>
+          <DialogTitle>Edit Subject</DialogTitle>
+        </DialogHeader>
         <Input
           value={newTitle}
           onChange={(e) => setNewTitle(e.target.value)}
@@ -58,8 +66,8 @@ const EditModal = ({
             Cancel
           </Button>
         </div>
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
   );
 };
 
