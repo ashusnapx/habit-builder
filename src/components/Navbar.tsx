@@ -16,6 +16,7 @@ const Navbar = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isMenuOpen, setMenuOpen] = useState(false);
   const router = useRouter();
+  const user = useFetchUser();
 
   const openModal = () => setModalOpen(true);
   const closeModal = () => setModalOpen(false);
@@ -58,7 +59,7 @@ const Navbar = () => {
 
   useEffect(() => {
     checkAuthentication();
-  }, []);
+  }, [user.user]);
 
   return (
     <header className='fixed top-0 left-0 w-full z-50 bg-white dark:bg-black shadow-lg capitalize'>
@@ -122,6 +123,7 @@ const Navbar = () => {
             <Link
               href='https://ashusnapx.vercel.app/'
               className='flex items-center space-x-2 md:space-x-1 text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400'
+              target="_blank"
             >
               <Github size={18} />
               <span>Github</span>
