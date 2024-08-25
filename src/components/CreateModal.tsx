@@ -18,7 +18,7 @@ import { useSubject } from "@/hooks/useSubject";
 interface CreateModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSubjectCreated: (newSubjects: any[]) => void; // Callback to notify about the new subjects
+  onSubjectCreated: (newSubjects: any[]) => void; 
 }
 
 const CreateModal: React.FC<CreateModalProps> = ({

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { fetchChapters, updateChapterCompletion } from "@/lib/appwrite";
 
 export const useChapters = (subjectId: string) => {
@@ -7,7 +7,10 @@ export const useChapters = (subjectId: string) => {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    if (!subjectId) return;
+
     const getChapters = async () => {
+      setLoading(true);
       try {
         const chapters = await fetchChapters(subjectId);
         setChapters(chapters);
@@ -18,28 +21,30 @@ export const useChapters = (subjectId: string) => {
       }
     };
 
-    if (subjectId) {
-      getChapters();
-    }
+    getChapters();
   }, [subjectId]);
 
-  const handleCompleteChange = async (id: string, completed: boolean) => {
-    try {
-      await updateChapterCompletion(id, completed);
-      const updatedChapters = chapters.map((chapter) =>
-        chapter.$id === id
-          ? {
-              ...chapter,
-              completed,
-              progress: completed ? 100 : chapter.progress,
-            }
-          : chapter
-      );
-      setChapters(updatedChapters);
-    } catch (error) {
-      console.error("Error updating chapter completion:", error);
-    }
-  };
+  const handleCompleteChange = useCallback(
+    async (id: string, completed: boolean) => {
+      try {
+        await updateChapterCompletion(id, completed);
+        setChapters((prevChapters) =>
+          prevChapters.map((chapter) =>
+            chapter.$id === id
+              ? {
+                  ...chapter,
+                  completed,
+                  progress: completed ? 100 : chapter.progress,
+                }
+              : chapter
+          )
+        );
+      } catch (error) {
+        console.error("Error updating chapter completion:", error);
+      }
+    },
+    []
+  );
 
   return {
     chapters,

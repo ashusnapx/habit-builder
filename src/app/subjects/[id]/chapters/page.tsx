@@ -27,15 +27,13 @@ const ChaptersPage = () => {
   const [newChapters, setNewChapters] = useState("");
   const { width, height } = useWindowSize();
   const [isConfettiActive, setConfettiActive] = useState(false);
-  const [time, setTime] = useState(0);
-  const [isButtonDisabled, setButtonDisabled] = useState(false);
   const [subjectTitle, setSubjectTitle] = useState<string | null>(null);
 
   useEffect(() => {
     const allChaptersCompleted = chapters.every((chapter) => chapter.completed);
     if (allChaptersCompleted && chapters.length > 0) {
       setConfettiActive(true);
-      setTimeout(() => setConfettiActive(false), 5000); // Show confetti for 5 seconds
+      setTimeout(() => setConfettiActive(false), 5000);
     }
   }, [chapters]);
 
@@ -60,19 +58,10 @@ const ChaptersPage = () => {
           .split(",")
           .map((title) => title.trim())
           .filter((title) => title.length > 0);
-        setButtonDisabled(true); // Disable button after click
-
-        for (const title of titles) {
-          await addChapter(subjectId, title);
-        }
-
+        await Promise.all(titles.map((title) => addChapter(subjectId, title)));
         setNewChapters("");
-        // Reload the page or re-fetch data to reflect changes
-        window.location.reload();
       } catch (err) {
         console.error("Failed to add chapters:", err);
-      } finally {
-        setButtonDisabled(false);
       }
     }
   };
@@ -127,7 +116,7 @@ const ChaptersPage = () => {
   return (
     <div className='relative p-5 mt-20'>
       {isConfettiActive && <Confetti width={width} height={height} />}
-      <h1 className='text-4xl font-extrabold mb-4 text-blue-600 dark:text-gray-500 tracking-tighter flex-wrap overflow-x-hidden capitalize'>
+      <h1 className='text-4xl font-extrabold mb-4 text-blue-600 dark:text-gray-200 tracking-tighter flex-wrap overflow-x-hidden capitalize'>
         {subjectTitle} Chapters 📕
       </h1>
       <p className='text-lg mb-4'>
@@ -142,7 +131,7 @@ const ChaptersPage = () => {
         />
         <Button
           onClick={handleAddChapter}
-          disabled={addLoading || newChapters.trim() === "" || isButtonDisabled}
+          disabled={addLoading || newChapters.trim() === ""}
           className='bg-blue-600 text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50'
         >
           {addLoading ? "Adding..." : "Add Chapters"}
@@ -153,19 +142,34 @@ const ChaptersPage = () => {
           </p>
         )}
       </div>
-      <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6'>
+      <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6'>
         {chapters.map((chapter) => (
-          <ChapterCard
+          <div
             key={chapter.$id}
-            id={chapter.$id}
-            title={chapter.title}
-            completed={chapter.completed}
-            onCompleteChange={handleCompleteChange}
-          />
+            className='p-4 border border-gray-200 rounded-lg shadow-md bg-white dark:border-gray-700 dark:bg-gray-800'
+          >
+            <div className='flex items-center justify-between'>
+              <h2 className='text-lg font-semibold dark:text-gray-300'>
+                {chapter.title}
+              </h2>
+              <input
+                type='checkbox'
+                checked={chapter.completed}
+                onChange={(e) =>
+                  handleCompleteChange(chapter.$id, e.target.checked)
+                }
+                className='ml-2'
+              />
+            </div>
+            <p className='text-gray-600 dark:text-gray-400 mt-2'>
+              Progress: {chapter.progress}%
+            </p>
+          </div>
         ))}
       </div>
     </div>
   );
 };
+
 
 export default ChaptersPage;

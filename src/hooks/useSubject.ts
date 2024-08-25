@@ -1,20 +1,36 @@
-import { useState } from "react";
-import { database, appwriteConfig } from "@/lib/appwrite";
-import { useFetchUser } from "@/hooks/useFetchUser";
+import { useState, useCallback } from "react";
+import { appwriteConfig, database, getCurrentUserId } from "@/lib/appwrite";
 
 export const useSubject = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [subject, setSubject] = useState<any | null>(null);
-  const { user } = useFetchUser(); 
 
+  // Fetch a subject by its ID
+  const fetchSubject = useCallback(async (id: string) => {
+    setLoading(true);
+    try {
+      const response = await database.getDocument(
+        appwriteConfig.databaseId,
+        appwriteConfig.subjectCollectionId,
+        id
+      );
+      setSubject(response);
+      return response;
+    } catch (error) {
+      setError("Failed to fetch subject.");
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  // Create a new subject
   const createSubject = async (title: string) => {
     setLoading(true);
     try {
-      if (!user) {
-        throw new Error("User not found.");
-      }
       const now = new Date().toISOString();
+      const userId = await getCurrentUserId(); // Fetch user ID from Appwrite
 
       await database.createDocument(
         appwriteConfig.databaseId,
@@ -24,7 +40,7 @@ export const useSubject = () => {
           title,
           createdAt: now,
           updatedAt: now,
-          user: user.$id,
+          user: userId,
         }
       );
     } catch (error) {
@@ -35,6 +51,7 @@ export const useSubject = () => {
     }
   };
 
+  // Update an existing subject
   const updateSubject = async (id: string, updates: { title?: string }) => {
     setLoading(true);
     try {
@@ -57,6 +74,7 @@ export const useSubject = () => {
     }
   };
 
+  // Delete a subject by its ID
   const deleteSubject = async (id: string) => {
     setLoading(true);
     try {
@@ -67,25 +85,6 @@ export const useSubject = () => {
       );
     } catch (error) {
       setError("Failed to delete subject.");
-      throw error;
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Function to fetch a subject by its ID
-  const fetchSubject = async (id: string) => {
-    setLoading(true);
-    try {
-      const response = await database.getDocument(
-        appwriteConfig.databaseId,
-        appwriteConfig.subjectCollectionId,
-        id
-      );
-      setSubject(response);
-      return response;
-    } catch (error) {
-      setError("Failed to fetch subject.");
       throw error;
     } finally {
       setLoading(false);
