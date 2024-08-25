@@ -4,13 +4,11 @@ import React, { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import ChapterCard from "@/components/ChapterCard";
-import { useChapters } from "@/hooks/useChapter";
-import { useCreateChapter } from "@/hooks/useCreateChapter";
-import { useSubject } from "@/hooks/useSubject"; // Import your useSubject hook
 import Confetti from "react-confetti";
 import useWindowSize from "react-use/lib/useWindowSize";
-import { Skeleton } from "@/components/ui/skeleton"; // Import Skeleton component
+import { Skeleton } from "@/components/ui/skeleton";
+import { useChapters, useCreateChapter, useSubject } from "@/hooks";
+import { ChapterCard } from "@/components";
 
 const ChaptersPage = () => {
   const { id: subjectIdParam } = useParams();
@@ -21,30 +19,17 @@ const ChaptersPage = () => {
     subjectId as string
   );
   const {
-    createSubject,
-    updateSubject,
-    deleteSubject,
-    loading: subjectLoading,
-    error: subjectError,
-  } = useSubject();
-  const {
     addChapter,
     loading: addLoading,
     error: addError,
   } = useCreateChapter();
+  const { fetchSubject } = useSubject();
   const [newChapters, setNewChapters] = useState("");
   const { width, height } = useWindowSize();
   const [isConfettiActive, setConfettiActive] = useState(false);
   const [time, setTime] = useState(0);
   const [isButtonDisabled, setButtonDisabled] = useState(false);
-
-  // Assuming you have a way to fetch the subject title
   const [subjectTitle, setSubjectTitle] = useState<string | null>(null);
-
-  useEffect(() => {
-    const timer = setInterval(() => setTime((prevTime) => prevTime + 1), 1000);
-    return () => clearInterval(timer);
-  }, []);
 
   useEffect(() => {
     const allChaptersCompleted = chapters.every((chapter) => chapter.completed);
@@ -53,6 +38,20 @@ const ChaptersPage = () => {
       setTimeout(() => setConfettiActive(false), 5000); // Show confetti for 5 seconds
     }
   }, [chapters]);
+
+  useEffect(() => {
+    const fetchSubjectTitle = async () => {
+      if (subjectId) {
+        try {
+          const subjectData = await fetchSubject(subjectId);
+          setSubjectTitle(subjectData.title);
+        } catch (error) {
+          console.error("Error fetching subject title:", error);
+        }
+      }
+    };
+    fetchSubjectTitle();
+  }, [subjectId, fetchSubject]);
 
   const handleAddChapter = async () => {
     if (subjectId && newChapters.trim()) {
@@ -124,15 +123,9 @@ const ChaptersPage = () => {
   return (
     <div className='relative p-5 mt-20'>
       {isConfettiActive && <Confetti width={width} height={height} />}
-      <h1 className='text-4xl font-extrabold mb-4 text-gray-900'>Chapters</h1>
-      {subjectTitle && (
-        <h2 className='text-2xl font-semibold mb-4 text-gray-800'>
-          Subject: {subjectTitle}
-        </h2>
-      )}
-      <p className='text-lg mb-4'>
-        Time spent: {Math.floor(time / 60)}m {time % 60}s
-      </p>
+      <h1 className='text-4xl font-extrabold mb-4 text-blue-600 dark:text-gray-500 tracking-tighter flex-wrap overflow-x-hidden capitalize'>
+        {subjectTitle} Chapters 📕
+      </h1>
       <p className='text-lg mb-4'>
         Completion: {completionPercentage.toFixed(2)}%
       </p>
@@ -156,7 +149,7 @@ const ChaptersPage = () => {
           </p>
         )}
       </div>
-      <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6'>
+      <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6'>
         {chapters.map((chapter) => (
           <ChapterCard
             key={chapter.$id}
@@ -164,7 +157,6 @@ const ChaptersPage = () => {
             title={chapter.title}
             completed={chapter.completed}
             onCompleteChange={handleCompleteChange}
-            // className='bg-white border border-gray-200 rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300'
           />
         ))}
       </div>

@@ -68,7 +68,7 @@ const Navbar = () => {
         <div className='flex items-center justify-between w-full md:w-auto space-x-4'>
           <Link
             href='/'
-            className='text-2xl font-bold text-gray-900 dark:text-white'
+            className='text-2xl md:text-3xl font-bold text-gray-900 dark:text-white'
           >
             Habit.AI
           </Link>

@@ -1,11 +1,12 @@
 import { useState } from "react";
-import { database, appwriteConfig } from "@/lib/appwrite"; // Ensure this import path is correct
-import { useFetchUser } from "@/hooks/useFetchUser"; // Import your fetch user hook
+import { database, appwriteConfig } from "@/lib/appwrite";
+import { useFetchUser } from "@/hooks/useFetchUser";
 
 export const useSubject = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const { user } = useFetchUser(); // Get current user
+  const [subject, setSubject] = useState<any | null>(null);
+  const { user } = useFetchUser(); 
 
   const createSubject = async (title: string) => {
     setLoading(true);
@@ -23,7 +24,7 @@ export const useSubject = () => {
           title,
           createdAt: now,
           updatedAt: now,
-          user: user.$id, // Use the fetched user ID
+          user: user.$id,
         }
       );
     } catch (error) {
@@ -72,5 +73,32 @@ export const useSubject = () => {
     }
   };
 
-  return { createSubject, updateSubject, deleteSubject, loading, error };
+  // Function to fetch a subject by its ID
+  const fetchSubject = async (id: string) => {
+    setLoading(true);
+    try {
+      const response = await database.getDocument(
+        appwriteConfig.databaseId,
+        appwriteConfig.subjectCollectionId,
+        id
+      );
+      setSubject(response);
+      return response;
+    } catch (error) {
+      setError("Failed to fetch subject.");
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return {
+    createSubject,
+    updateSubject,
+    deleteSubject,
+    fetchSubject,
+    subject,
+    loading,
+    error,
+  };
 };

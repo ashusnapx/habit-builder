@@ -1,5 +1,5 @@
-import { Navbar } from "@/components";
-import SubjectList from "@/components/SubjectList";
+import { SubjectList } from "@/components";
+
 
 export default function Home() {
   return (
