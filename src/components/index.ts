@@ -10,6 +10,7 @@ import SignInPage from "./SignInPage";
 import SignUpPage from "./SignUpPage";
 import SubjectCard from "./SubjectCard";
 import SubjectList from "./SubjectList";
+import ProgressBar from "./ProgressBar";
 
 export {
   Navbar,
@@ -24,5 +25,6 @@ export {
   SignUpPage,
   SubjectCard,
   SubjectList,
+  ProgressBar,
 };
 

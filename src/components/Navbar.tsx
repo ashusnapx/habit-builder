@@ -11,13 +11,10 @@ import { useFetchUser } from "@/hooks/useFetchUser";
 import Link from "next/link";
 
 const Navbar = () => {
-  const user = useFetchUser();
   const [isModalOpen, setModalOpen] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isMenuOpen, setMenuOpen] = useState(false);
   const router = useRouter();
-
-  useEffect(() => {}, [user]);
 
   const openModal = () => setModalOpen(true);
   const closeModal = () => setModalOpen(false);
@@ -70,7 +67,7 @@ const Navbar = () => {
             href='/'
             className='text-2xl md:text-3xl font-bold text-gray-900 dark:text-white'
           >
-            Habit.AI
+            Habit<span className="text-blue-600">.AI</span>
           </Link>
           <span className='text-sm text-gray-600 dark:text-gray-400 hidden md:inline'>
             By Ashutosh Kumar
@@ -91,9 +88,9 @@ const Navbar = () => {
               : "hidden"
           } md:block`}
         >
-          <div className='text-base text-center font-semibold text-gray-900 dark:text-white mt-4 md:mt-0'>
+          {/* <div className='text-base text-center font-semibold text-gray-900 dark:text-white mt-4 md:mt-0'>
             Welcome {user?.user?.name || "Guest"}
-          </div>
+          </div> */}
           <div className='flex flex-col md:flex-row items-center space-y-4 md:space-y-0 md:space-x-4 mt-4 md:mt-0 gap-3'>
             {isAuthenticated ? (
               <div className='flex flex-col md:flex-row gap-2 md:gap-4 w-fit'>

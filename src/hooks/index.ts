@@ -6,6 +6,7 @@ import { useSignIn } from "./useSignIn";
 import { useSignOut } from "./useSignOut";
 import { useSignUp } from "./useSignUp";
 import { useSubject } from "./useSubject";
+import { useSubjectsProgress } from "./useSubjectsProgress";
 
 export {
   useChapters,
@@ -16,5 +17,6 @@ export {
   useSignOut,
   useSignUp,
   useSubject,
+  useSubjectsProgress,
 };
 
