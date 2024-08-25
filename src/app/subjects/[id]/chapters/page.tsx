@@ -1,160 +1,128 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
-import { useParams } from "next/navigation";
-import { Input } from "@/components/ui/input";
+import { useState } from "react";
+
+import { Github, LogOutIcon, Menu, PlusIcon, X } from "lucide-react";
+import { signOut } from "@/lib/appwrite";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
+import { useAuth } from "@/hooks/useAuth"; 
 import { Button } from "@/components/ui/button";
-import Confetti from "react-confetti";
-import useWindowSize from "react-use/lib/useWindowSize";
-import { Skeleton } from "@/components/ui/skeleton";
-import { useChapters, useCreateChapter, useSubject } from "@/hooks";
-import ChapterCard from "@/components/ChapterCard"; // Updated import
+import TargetModal from "@/components/TargetModal";
+import { CreateModal, ModeToggle } from "@/components";
 
-const ChaptersPage = () => {
-  const { id: subjectIdParam } = useParams();
-  const subjectId = Array.isArray(subjectIdParam)
-    ? subjectIdParam[0]
-    : subjectIdParam;
-  const { chapters, loading, error, handleCompleteChange, refetchChapters } =
-    useChapters(subjectId as string);
-  const {
-    addChapter,
-    loading: addLoading,
-    error: addError,
-  } = useCreateChapter();
-  const { fetchSubject } = useSubject();
-  const [newChapters, setNewChapters] = useState("");
-  const { width, height } = useWindowSize();
-  const [isConfettiActive, setConfettiActive] = useState(false);
-  const [subjectTitle, setSubjectTitle] = useState<string | null>(null);
+const Navbar = () => {
+  const [isModalOpen, setModalOpen] = useState(false);
+  const [isMenuOpen, setMenuOpen] = useState(false);
+  const router = useRouter();
+  const isAuthenticated = useAuth(); 
+  const openModal = () => setModalOpen(true);
+  const closeModal = () => setModalOpen(false);
+  const toggleMenu = () => setMenuOpen((prev) => !prev);
 
-  useEffect(() => {
-    const allChaptersCompleted = chapters.every((chapter) => chapter.completed);
-    if (allChaptersCompleted && chapters.length > 0) {
-      setConfettiActive(true);
-      setTimeout(() => setConfettiActive(false), 5000);
-    }
-  }, [chapters]);
-
-  useEffect(() => {
-    const fetchSubjectTitle = async () => {
-      if (subjectId) {
-        try {
-          const subjectData = await fetchSubject(subjectId);
-          setSubjectTitle(subjectData.title);
-        } catch (error) {
-          console.error("Error fetching subject title:", error);
-        }
-      }
-    };
-    fetchSubjectTitle();
-  }, [subjectId, fetchSubject]);
-
-  const handleAddChapter = async () => {
-    if (subjectId && newChapters.trim()) {
-      try {
-        const titles = newChapters
-          .split(",")
-          .map((title) => title.trim())
-          .filter((title) => title.length > 0);
-        await Promise.all(titles.map((title) => addChapter(subjectId, title)));
-        setNewChapters("");
-        refetchChapters(); // Refetch chapters after adding new ones
-      } catch (err) {
-        console.error("Failed to add chapters:", err);
-      }
+  const handleSignOut = async () => {
+    try {
+      await signOut();
+      router.push("/sign-in");
+    } catch (error) {
+      console.error("Error signing out:", error);
     }
   };
 
-  // Calculate percentage completion
-  const completedCount = chapters.filter((chapter) => chapter.completed).length;
-  const totalCount = chapters.length;
-  const completionPercentage =
-    totalCount > 0 ? (completedCount / totalCount) * 100 : 0;
+  const handleSignIn = () => {
+    router.push("/sign-in");
+    closeModal();
+  };
 
-  if (loading) {
-    return (
-      <div className='relative p-5 mt-20 dark:bg-gray-900 dark:text-gray-100'>
-        {isConfettiActive && <Confetti width={width} height={height} />}
-        <h1 className='text-4xl font-extrabold mb-4 text-gray-600 dark:text-gray-300'>
-          Chapters
-        </h1>
-        <p className='text-lg text-gray-600 mb-4 dark:text-gray-400'>
-          Loading chapters...
-        </p>
-        <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6'>
-          {Array(6)
-            .fill(null)
-            .map((_, index) => (
-              <div
-                key={index}
-                className='p-4 border border-gray-200 rounded-lg shadow-md bg-white dark:border-gray-700 dark:bg-gray-800'
-              >
-                <Skeleton className='h-12 w-12 rounded-full mb-4 dark:bg-gray-600' />
-                <div className='space-y-4'>
-                  <Skeleton className='h-4 w-[250px] dark:bg-gray-600' />
-                  <Skeleton className='h-4 w-[200px] dark:bg-gray-600' />
-                  <Skeleton className='h-4 w-[150px] dark:bg-gray-600' />
-                </div>
-              </div>
-            ))}
-        </div>
-      </div>
-    );
-  }
+  const handleSignUp = () => {
+    router.push("/sign-up");
+    closeModal();
+  };
 
-  if (error) {
-    return (
-      <div className='relative p-5 mt-20'>
-        {isConfettiActive && <Confetti width={width} height={height} />}
-        <h1 className='text-4xl font-extrabold mb-4 text-gray-900'>Chapters</h1>
-        <p className='text-lg text-red-600'>Error loading chapters: {error}</p>
-      </div>
-    );
-  }
+  const handleSubjectCreated = (newSubject: any) => {
+    // Handle subject creation
+  };
 
   return (
-    <div className='relative p-5 mt-20'>
-      {isConfettiActive && <Confetti width={width} height={height} />}
-      <h1 className='text-4xl font-extrabold mb-4 text-blue-600 dark:text-gray-200 tracking-tighter flex-wrap overflow-x-hidden capitalize'>
-        {subjectTitle} Chapters 📕
-      </h1>
-      <p className='text-lg mb-4'>
-        Completion: {completionPercentage.toFixed(2)}%
-      </p>
-      <div className='flex flex-col md:flex-row items-center gap-4 mb-6'>
-        <Input
-          value={newChapters}
-          onChange={(e) => setNewChapters(e.target.value)}
-          placeholder='Enter chapter titles separated by commas'
-          className='flex-1 border border-gray-300 rounded-lg p-2 shadow-sm'
-        />
-        <Button
-          onClick={handleAddChapter}
-          disabled={addLoading || newChapters.trim() === ""}
-          className='bg-blue-600 text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50'
+    <header className='fixed top-0 left-0 w-full z-50 bg-white dark:bg-black shadow-lg capitalize'>
+      <div className='flex flex-col md:flex-row items-center justify-between p-4 md:p-6 border-b border-gray-200 dark:border-gray-700'>
+        <div className='flex items-center justify-between w-full md:w-auto space-x-4'>
+          <Link
+            href='/'
+            className='text-2xl md:text-3xl font-bold text-gray-900 dark:text-white flex flex-col'
+          >
+            <h1>
+              Habit.<span className='text-blue-600 italic'>AI</span>
+            </h1>
+            <span className='text-sm font-normal text-gray-600 dark:text-gray-400'>
+              By Ashutosh Kumar
+            </span>
+          </Link>
+
+          <Button
+            variant='outline'
+            onClick={toggleMenu}
+            className='md:hidden text-gray-600 dark:text-gray-400 focus:outline-none'
+          >
+            {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
+          </Button>
+        </div>
+
+        <nav
+          className={`fixed md:static inset-0 top-16 left-0 md:flex md:items-center md:space-x-6 md:top-0 md:inset-auto ${
+            isMenuOpen
+              ? "block bg-white dark:bg-black md:bg-transparent md:flex"
+              : "hidden"
+          } md:block`}
         >
-          {addLoading ? "Adding..." : "Add Chapters"}
-        </Button>
-        {addError && (
-          <p className='text-red-600 mt-2'>
-            Error adding chapters: {addError.message}
-          </p>
-        )}
+          <div className='flex flex-col md:flex-row items-center space-y-4 md:space-y-0 md:space-x-4 mt-4 md:mt-0 gap-3'>
+            {isAuthenticated ? (
+              <div className='flex flex-col md:flex-row gap-2 md:gap-2 w-fit'>
+                <TargetModal />
+                <Button
+                  onClick={openModal}
+                  className='flex items-center space-x-2 md:space-x-1'
+                  variant='outline'
+                >
+                  <PlusIcon size={18} />
+                  <span>Create</span>
+                </Button>
+                <Button
+                  onClick={handleSignOut}
+                  className='flex items-center space-x-2 md:space-x-1 hover:bg-red-500 hover:text-white'
+                  variant='outline'
+                >
+                  <LogOutIcon size={18} />
+                  <span>Sign Out</span>
+                </Button>
+              </div>
+            ) : (
+              <div className='flex flex-col md:flex-row gap-2 md:gap-4'>
+                <Button onClick={handleSignIn}>Sign In</Button>
+                <Button onClick={handleSignUp}>Sign Up</Button>
+              </div>
+            )}
+            <Link
+              href='https://ashusnapx.vercel.app/'
+              className='flex items-center space-x-2 md:space-x-1 text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400'
+              target='_blank'
+            >
+              <Github size={18} />
+              <span>Github</span>
+            </Link>
+            <div>
+              <ModeToggle />
+            </div>
+          </div>
+        </nav>
       </div>
-      <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6'>
-        {chapters.map((chapter) => (
-          <ChapterCard
-            key={chapter.$id}
-            id={chapter.$id}
-            title={chapter.title}
-            completed={chapter.completed}
-            onCompleteChange={handleCompleteChange}
-          />
-        ))}
-      </div>
-    </div>
+      <CreateModal
+        isOpen={isModalOpen}
+        onClose={closeModal}
+        onSubjectCreated={handleSubjectCreated}
+      />
+    </header>
   );
 };
 
-export default ChaptersPage;
+export default Navbar;

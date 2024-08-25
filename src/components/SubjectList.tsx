@@ -13,8 +13,7 @@ import CreateModal from "./CreateModal";
 import EditModal from "./EditModal";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useFetchUser } from "@/hooks";
-import TargetModal from "./TargetModal";
-import DeleteConfirmationDialog from "./DeleteConfirmationDialog"; // Import the new component
+import DeleteConfirmationDialog from "./DeleteConfirmationDialog";
 
 const SubjectList = () => {
   const user = useFetchUser();
@@ -124,13 +123,14 @@ const SubjectList = () => {
     (acc, subject) => acc + subject.totalChapters,
     0
   );
+  const totalCompletedChapters = subjects.reduce(
+    (acc, subject) => acc + subject.completedChapters,
+    0
+  );
 
   if (loading) {
     return (
       <div className='mt-20 p-4'>
-        <div className='text-base text-center font-semibold text-gray-900 dark:text-white mt-4 md:mt-0'>
-          Welcome {user?.user?.name || "Guest"}
-        </div>
         <h1 className='mt-5 mb-5 ml-4 text-2xl font-semibold tracking-tighter'>
           Hi {user?.user?.name || "Guest"} 👋🏻
         </h1>
@@ -160,7 +160,7 @@ const SubjectList = () => {
           <span className='text-blue-600'>{user?.user?.name || "Guest"}</span>{" "}
           👋🏻
           <br />
-          {!user ? (
+          {!user.user ? (
             <>Create subjects &rarr;</>
           ) : (
             <>Here are your subjects &rarr;</>
@@ -175,7 +175,11 @@ const SubjectList = () => {
           <span className='font-semibold'>
             Total <span className='text-blue-600'>Chapters</span>:
           </span>{" "}
-          {totalChapters}
+          {totalChapters} <br />
+          <span className='font-semibold'>
+            Completed <span className='text-blue-600'>Chapters</span>:
+          </span>{" "}
+          {totalCompletedChapters}
         </p>
       </div>
 
