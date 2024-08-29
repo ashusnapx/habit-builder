@@ -167,7 +167,7 @@ const SubjectList = () => {
       <div className='flex md:items-center justify-between flex-col md:flex-row'>
         <h1 className='mt-5 md:mb-5 ml-4 text-2xl font-semibold tracking-tighter'>
           {getGreeting()}{" "}
-          <span className='text-blue-600'>{user?.user?.name || "Guest"}</span>{" "}
+          <span className='text-blue-600 capitalize'>{user?.user?.name || "Guest"}</span>{" "}
           👋🏻
           <br />
           {!user.user ? (
