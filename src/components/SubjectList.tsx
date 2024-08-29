@@ -28,6 +28,16 @@ const SubjectList = () => {
 
   const router = useRouter();
 
+  // Function to get the appropriate greeting based on the time of day
+  const getGreeting = () => {
+    const now = new Date();
+    const hours = now.getHours();
+    if (hours < 12) return "Good morning";
+    if (hours < 17) return "Good afternoon";
+    if (hours < 20) return "Good evening";
+    return "Good night";
+  };
+
   useEffect(() => {
     const getSubjects = async () => {
       try {
@@ -132,7 +142,7 @@ const SubjectList = () => {
     return (
       <div className='mt-20 p-4'>
         <h1 className='mt-5 mb-5 ml-4 text-2xl font-semibold tracking-tighter'>
-          Hi {user?.user?.name || "Guest"} 👋🏻
+          {getGreeting()} {user?.user?.name || "Guest"} 👋🏻
         </h1>
         <div className='grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3'>
           {Array(6)
@@ -156,7 +166,7 @@ const SubjectList = () => {
     <div className='mt-12 md:mt-20 p-4'>
       <div className='flex md:items-center justify-between flex-col md:flex-row'>
         <h1 className='mt-5 md:mb-5 ml-4 text-2xl font-semibold tracking-tighter'>
-          Hi{" "}
+          {getGreeting()}{" "}
           <span className='text-blue-600'>{user?.user?.name || "Guest"}</span>{" "}
           👋🏻
           <br />
