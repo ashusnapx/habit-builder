@@ -9,7 +9,14 @@ export const useFetchSubjects = () => {
     const fetchSubjects = async () => {
       try {
         const subjects = await appwriteFetchSubjects();
-        setSubjects(subjects);
+
+        // Ensure each subject has `lastOpened` as a Date object
+        const subjectsWithDates = subjects.map((subject) => ({
+          ...subject,
+          lastOpened: new Date(subject.lastOpened || new Date(0)),
+        }));
+
+        setSubjects(subjectsWithDates);
         setError(null);
       } catch (err) {
         setError("Failed to fetch subjects.");

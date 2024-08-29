@@ -8,12 +8,14 @@ import {
   fetchChapters,
   deleteSubject,
   getCurrentUserId,
+  updateSubjectLastOpened,
 } from "@/lib/appwrite";
 import CreateModal from "./CreateModal";
 import EditModal from "./EditModal";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useFetchUser } from "@/hooks";
 import DeleteConfirmationDialog from "./DeleteConfirmationDialog";
+import Select from "react-select"; // Import react-select
 
 const SubjectList = () => {
   const user = useFetchUser();
@@ -23,12 +25,12 @@ const SubjectList = () => {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [editingSubject, setEditingSubject] = useState<any>(null);
   const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
-  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false); // State for delete dialog
-  const [deletingSubject, setDeletingSubject] = useState<any>(null); // State to store subject being deleted
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [deletingSubject, setDeletingSubject] = useState<any>(null);
+  const [searchTerm, setSearchTerm] = useState(""); // State for search term
 
   const router = useRouter();
 
-  // Function to get the appropriate greeting based on the time of day
   const getGreeting = () => {
     const now = new Date();
     const hours = now.getHours();
@@ -54,6 +56,7 @@ const SubjectList = () => {
           setSubjects([]);
           return;
         }
+
         const subjectsWithProgress = await Promise.all(
           subjectData.reverse().map(async (subject) => {
             const chapterData = await fetchChapters(subject.$id);
@@ -61,13 +64,24 @@ const SubjectList = () => {
               (chapter) => chapter.completed
             ).length;
             const totalChapters = chapterData.length;
+
+            // Convert lastOpened to a Date object
+            const lastOpened = new Date(subject.lastOpened || new Date(0));
+
             return {
               ...subject,
               completedChapters,
               totalChapters,
+              lastOpened, // Ensure this is a Date object
             };
           })
         );
+
+        // Sort subjects based on `lastOpened`
+        subjectsWithProgress.sort(
+          (a, b) => b.lastOpened.getTime() - a.lastOpened.getTime()
+        );
+
         setSubjects(subjectsWithProgress);
       } catch (error) {
         console.error("Failed to fetch subjects:", error);
@@ -90,10 +104,13 @@ const SubjectList = () => {
   };
 
   const handleSubjectUpdated = (updatedSubject: any) => {
-    setSubjects((prevSubjects) =>
-      prevSubjects.map((subject) =>
-        subject.$id === updatedSubject.$id ? updatedSubject : subject
-      )
+    setSubjects(
+      (prevSubjects) =>
+        prevSubjects
+          .map((subject) =>
+            subject.$id === updatedSubject.$id ? updatedSubject : subject
+          )
+          .sort((a, b) => b.lastOpened.getTime() - a.lastOpened.getTime()) // Sort updated subjects
     );
   };
 
@@ -117,7 +134,11 @@ const SubjectList = () => {
   };
 
   const handleSubjectCreated = (newSubject: any) => {
-    setSubjects((prevSubjects) => [newSubject, ...prevSubjects]);
+    setSubjects((prevSubjects) =>
+      [newSubject, ...prevSubjects].sort(
+        (a, b) => b.lastOpened.getTime() - a.lastOpened.getTime()
+      )
+    );
   };
 
   const handleCreateSubjectClick = () => {
@@ -128,12 +149,31 @@ const SubjectList = () => {
     }
   };
 
-  const totalSubjects = subjects.length;
-  const totalChapters = subjects.reduce(
+  const handleSubjectOpen = async (subject: any) => {
+    // Update the lastOpened timestamp
+    const now = new Date();
+    await updateSubjectLastOpened(subject.$id, now);
+
+    // Update state to reflect changes
+    setSubjects(
+      (prevSubjects) =>
+        prevSubjects
+          .map((s) => (s.$id === subject.$id ? { ...s, lastOpened: now } : s))
+          .sort((a, b) => b.lastOpened.getTime() - a.lastOpened.getTime()) // Sort again
+    );
+  };
+
+  // Filter subjects based on search term
+  const filteredSubjects = subjects.filter((subject) =>
+    subject.title.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  const totalSubjects = filteredSubjects.length;
+  const totalChapters = filteredSubjects.reduce(
     (acc, subject) => acc + subject.totalChapters,
     0
   );
-  const totalCompletedChapters = subjects.reduce(
+  const totalCompletedChapters = filteredSubjects.reduce(
     (acc, subject) => acc + subject.completedChapters,
     0
   );
@@ -167,7 +207,9 @@ const SubjectList = () => {
       <div className='flex md:items-center justify-between flex-col md:flex-row'>
         <h1 className='mt-5 md:mb-5 ml-4 text-2xl font-semibold tracking-tighter'>
           {getGreeting()}{" "}
-          <span className='text-blue-600 capitalize'>{user?.user?.name || "Guest"}</span>{" "}
+          <span className='text-blue-600 capitalize'>
+            {user?.user?.name || "Guest"}
+          </span>{" "}
           👋🏻
           <br />
           {!user.user ? (
@@ -193,7 +235,27 @@ const SubjectList = () => {
         </p>
       </div>
 
-      {subjects.length === 0 ? (
+      {/* Search Bar */}
+      <div className='mb-6'>
+        <Select
+          options={subjects.map((subject) => ({
+            value: subject.$id,
+            label: subject.title,
+          }))}
+          onChange={(option) => {
+            const selectedSubject = subjects.find(
+              (subject) => subject.$id === option?.value
+            );
+            if (selectedSubject) {
+              handleSubjectOpen(selectedSubject);
+            }
+          }}
+          placeholder='Search subjects...'
+          className='capitalize dark:text-black rounded-full'
+        />
+      </div>
+
+      {filteredSubjects.length === 0 ? (
         <div className='flex flex-col items-center text-center'>
           <p>No subjects found. Click below to create a new subject.</p>
           <button
@@ -205,7 +267,7 @@ const SubjectList = () => {
         </div>
       ) : (
         <div className='grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 capitalize'>
-          {subjects.map((subject) => (
+          {filteredSubjects.map((subject) => (
             <SubjectCard
               key={subject.$id}
               id={subject.$id}
@@ -215,6 +277,8 @@ const SubjectList = () => {
               totalChapters={subject.totalChapters}
               onEdit={() => handleEdit(subject)}
               onDelete={() => handleDeleteClick(subject)}
+              onOpen={() => handleSubjectOpen(subject)}
+              lastOpened={subject.lastOpened}
             />
           ))}
         </div>
@@ -230,8 +294,8 @@ const SubjectList = () => {
         <EditModal
           isOpen={isEditModalOpen}
           onClose={handleEditModalClose}
-          onSubjectUpdated={handleSubjectUpdated}
           subject={editingSubject}
+          onSubjectUpdated={handleSubjectUpdated}
         />
       )}
 
@@ -239,7 +303,7 @@ const SubjectList = () => {
         <DeleteConfirmationDialog
           isOpen={isDeleteDialogOpen}
           onClose={() => setIsDeleteDialogOpen(false)}
-          onDeleteConfirm={handleDeleteConfirm}
+          onConfirm={handleDeleteConfirm}
           subjectTitle={deletingSubject.title}
         />
       )}

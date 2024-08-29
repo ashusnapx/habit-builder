@@ -14,6 +14,28 @@ import { Progress } from "@/components/ui/progress";
 import { useRouter } from "next/navigation";
 import { Edit3Icon, EyeIcon, Trash2Icon } from "lucide-react";
 
+// Utility function to get time of day emoji
+const getTimeOfDayEmoji = (date: Date) => {
+  const hours = date.getHours();
+  if (hours >= 5 && hours < 12) return "🌅"; // Morning
+  if (hours >= 12 && hours < 17) return "🌞"; // Afternoon
+  if (hours >= 17 && hours < 20) return "🌆"; // Evening
+  return "🌙"; // Night
+};
+
+// Format date as "MMM D, YYYY h:mm A"
+const formatDate = (date: Date) => {
+  const options: Intl.DateTimeFormatOptions = {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+    hour: "numeric",
+    minute: "numeric",
+    hour12: true,
+  };
+  return date.toLocaleDateString("en-US", options);
+};
+
 interface SubjectCardProps {
   id: string;
   title: string;
@@ -22,6 +44,9 @@ interface SubjectCardProps {
   totalChapters: number;
   onEdit: (id: string) => void;
   onDelete: (id: string) => void;
+  onOpen?: () => void;
+  createdAt?: Date;
+  lastOpened?: Date;
 }
 
 const SubjectCard = ({
@@ -32,11 +57,15 @@ const SubjectCard = ({
   totalChapters,
   onEdit,
   onDelete,
+  onOpen,
+  createdAt,
+  lastOpened,
 }: SubjectCardProps) => {
   const router = useRouter();
 
   const handleViewChapters = () => {
     router.push(`/subjects/${id}/chapters`);
+    if (onOpen) onOpen();
   };
 
   const progressPercentage =
@@ -60,6 +89,16 @@ const SubjectCard = ({
               {description}
             </p>
           )}
+          <div className='text-sm text-gray-500 dark:text-gray-400 mt-2'>
+            <p>
+              Last opened:{" "}
+              {lastOpened
+                ? `${formatDate(new Date(lastOpened))} ${getTimeOfDayEmoji(
+                    new Date(lastOpened)
+                  )}`
+                : "N/A"}
+            </p>
+          </div>
         </div>
       </CardHeader>
       <CardContent className='p-6'>
@@ -71,14 +110,14 @@ const SubjectCard = ({
         </div>
       </CardContent>
       <CardFooter className='flex flex-col sm:flex-row justify-between p-4 bg-gray-50 dark:bg-gray-700 gap-2 rounded-b-lg'>
-        {/* <Button
+        <Button
           onClick={() => onEdit(id)}
           className='bg-blue-500 text-white hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700 flex items-center justify-center w-full sm:w-auto'
           title='Edit Subject'
         >
           <Edit3Icon className='mr-2' />
           Edit
-        </Button> */}
+        </Button>
         <Button
           onClick={() => onDelete(id)}
           className='bg-red-500 text-white hover:bg-red-600 dark:bg-red-600 dark:hover:bg-red-700 flex items-center justify-center w-full sm:w-auto'

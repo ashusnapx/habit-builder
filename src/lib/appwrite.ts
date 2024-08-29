@@ -39,7 +39,7 @@ export const getCurrentUserId = async () => {
     const session = await account.getSession("current");
     return session.userId;
   } catch (error) {
-    console.error("Error getting current user:", error);
+    //console.error("Error getting current user:", error);
     throw error;
   }
 };
@@ -83,10 +83,10 @@ export const fetchSubjects = async () => {
       appwriteConfig.subjectCollectionId,
       [Query.equal("user", userId)] // Filter subjects by user ID
     );
-    console.log("Fetched subjects:", response.documents);
+    //console.log("Fetched subjects:", response.documents);
     return response.documents;
   } catch (error) {
-    console.error("Error fetching subjects:", error);
+    //console.error("Error fetching subjects:", error);
     throw error;
   }
 };
@@ -101,7 +101,7 @@ export const fetchChapters = async (subjectId: string) => {
     );
     return response.documents;
   } catch (error) {
-    console.error("Error fetching chapters:", error);
+    //console.error("Error fetching chapters:", error);
     throw error;
   }
 };
@@ -120,10 +120,10 @@ export const createChapter = async (subjectId: string, title: string) => {
         subject: subjectId,
       }
     );
-    console.log("Chapter created:", response);
+    //console.log("Chapter created:", response);
     return response;
   } catch (error) {
-    console.error("Error creating chapter:", error);
+    //console.error("Error creating chapter:", error);
     throw error;
   }
 };
@@ -140,10 +140,10 @@ export const updateChapterProgress = async (
       chapterId,
       { progress }
     );
-    console.log("Chapter progress updated:", response);
+    //console.log("Chapter progress updated:", response);
     return response;
   } catch (error) {
-    console.error("Error updating chapter progress:", error);
+    //console.error("Error updating chapter progress:", error);
     throw error;
   }
 };
@@ -159,9 +159,6 @@ export const updateChapterCompletion = async (
       progress: completed ? 100 : 0,
     };
 
-    console.log("Updating chapter with ID:", id);
-    console.log("Payload for update:", payload);
-
     await database.updateDocument(
       appwriteConfig.databaseId,
       appwriteConfig.chapterCollectionId,
@@ -169,7 +166,7 @@ export const updateChapterCompletion = async (
       payload
     );
   } catch (error) {
-    console.error("Error updating chapter completion:", error);
+    ////console.error("Error updating chapter completion:", error);
     throw error;
   }
 };
@@ -192,10 +189,10 @@ export const updateSubject = async (id: string, updates: { progress?: number }) 
       id,
       updates
     );
-    console.log("Subject updated:", response);
+    //console.log("Subject updated:", response);
     return response;
   } catch (error) {
-    console.error("Error updating subject:", error);
+    //console.error("Error updating subject:", error);
     throw error;
   }
 };
@@ -208,9 +205,9 @@ export const deleteSubject = async (id: string) => {
       appwriteConfig.subjectCollectionId,
       id
     );
-    console.log("Subject deleted:", id);
+    //console.log("Subject deleted:", id);
   } catch (error) {
-    console.error("Error deleting subject:", error);
+    //console.error("Error deleting subject:", error);
     throw error;
   }
 };
@@ -229,10 +226,26 @@ export const createTarget = async (targetData: {
       "unique()",
       targetData
     );
-    console.log("Target created:", response);
+    //console.log("Target created:", response);
     return response;
   } catch (error) {
-    console.error("Error creating target:", error);
+    //console.error("Error creating target:", error);
+    throw error;
+  }
+};
+
+// Function to update the last opened timestamp of a subject
+export const updateSubjectLastOpened = async (id: string, timestamp: Date) => {
+  try {
+    const response = await database.updateDocument(
+      appwriteConfig.databaseId,
+      appwriteConfig.subjectCollectionId,
+      id,
+      { lastOpened: timestamp.toISOString() } // Ensure the timestamp is in ISO format
+    );
+    return response;
+  } catch (error) {
+    console.error("Error updating subject last opened timestamp:", error);
     throw error;
   }
 };

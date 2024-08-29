@@ -7,21 +7,20 @@ import {
   DialogHeader,
   DialogTitle,
   DialogDescription,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 
 interface DeleteConfirmationDialogProps {
   isOpen: boolean;
   onClose: () => void;
-  onDeleteConfirm: () => void;
+  onConfirm: () => void;
   subjectTitle: string;
 }
 
 const DeleteConfirmationDialog = ({
   isOpen,
   onClose,
-  onDeleteConfirm,
+  onConfirm,
   subjectTitle,
 }: DeleteConfirmationDialogProps) => {
   return (
@@ -35,7 +34,7 @@ const DeleteConfirmationDialog = ({
           </DialogDescription>
         </DialogHeader>
         <div className='mt-4 flex gap-2'>
-          <Button onClick={onDeleteConfirm} variant='destructive'>
+          <Button onClick={onConfirm} variant='destructive'>
             Delete
           </Button>
           <Button onClick={onClose} variant='outline'>
