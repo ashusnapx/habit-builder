@@ -143,7 +143,7 @@ const ChaptersPage = () => {
         )}
       </div>
       <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6'>
-        {chapters.map((chapter) => (
+        {[...chapters].reverse().map((chapter) => (
           <ChapterCard
             key={chapter.$id}
             id={chapter.$id}

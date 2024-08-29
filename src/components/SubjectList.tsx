@@ -45,7 +45,7 @@ const SubjectList = () => {
           return;
         }
         const subjectsWithProgress = await Promise.all(
-          subjectData.map(async (subject) => {
+          subjectData.reverse().map(async (subject) => {
             const chapterData = await fetchChapters(subject.$id);
             const completedChapters = chapterData.filter(
               (chapter) => chapter.completed
