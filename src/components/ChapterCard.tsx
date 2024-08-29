@@ -44,12 +44,13 @@ const ChapterCard = ({
           src={
             completed
               ? "https://i.pinimg.com/originals/50/08/19/5008199e83133fd884116ca38d3b548e.jpg"
-              : "https://media.tenor.com/gZ9CSDfVg6kAAAAe/jethalal-tmkoc.png"
+              : "https://indianmemetemplates.com/wp-content/uploads/jethalal-headache.jpg"
           }
           alt={completed ? "Completed" : "Incomplete"}
           className='w-full h-40 object-cover'
           width={400}
           height={160}
+          priority
         />
         <CardHeader className='absolute bottom-0 left-0 bg-gradient-to-t from-black to-transparent w-full p-3'>
           <CardTitle className='text-white font-bold text-lg capitalize'>

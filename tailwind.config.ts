@@ -19,7 +19,7 @@ const config = {
     extend: {
       backgroundImage: {
         "custom-bg":
-          "url('https://t3.ftcdn.net/jpg/01/07/80/34/360_F_107803495_9iZBUc5YOhhcw7jKhw9tLnpgtT6Fm8ml.jpg')",
+          "url('https://images.pexels.com/photos/355887/pexels-photo-355887.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2')",
       },
       colors: {
         border: "hsl(var(--border))",

@@ -1,4 +1,4 @@
-"use client"
+"use client";
 
 import React from "react";
 import Avatar from "react-avatar";
@@ -52,7 +52,7 @@ const SubjectCard = ({
           className='border border-gray-300 dark:border-gray-600'
         />
         <div>
-          <CardTitle className='text-xl font-bold text-black'>
+          <CardTitle className='text-xl font-bold text-white'>
             {title}
           </CardTitle>
           {description && (
@@ -70,24 +70,30 @@ const SubjectCard = ({
           </div>
         </div>
       </CardContent>
-      <CardFooter className='flex justify-between p-4 bg-gray-50 dark:bg-gray-700 gap-1 rounded-b-lg'>
-        <Button
+      <CardFooter className='flex flex-col sm:flex-row justify-between p-4 bg-gray-50 dark:bg-gray-700 gap-2 rounded-b-lg'>
+        {/* <Button
           onClick={() => onEdit(id)}
-          className='bg-blue-500 text-white hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700'
+          className='bg-blue-500 text-white hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700 flex items-center justify-center w-full sm:w-auto'
+          title='Edit Subject'
         >
-          <Edit3Icon />
-        </Button>
+          <Edit3Icon className='mr-2' />
+          Edit
+        </Button> */}
         <Button
           onClick={() => onDelete(id)}
-          className='bg-red-500 text-white hover:bg-red-600 dark:bg-red-600 dark:hover:bg-red-700'
+          className='bg-red-500 text-white hover:bg-red-600 dark:bg-red-600 dark:hover:bg-red-700 flex items-center justify-center w-full sm:w-auto'
+          title='Delete Subject'
         >
-          <Trash2Icon />
+          <Trash2Icon className='mr-2' />
+          Delete
         </Button>
         <Button
           onClick={handleViewChapters}
-          className='bg-green-500 text-white hover:bg-green-600 dark:bg-green-600 dark:hover:bg-green-700'
+          className='bg-green-500 text-white hover:bg-green-600 dark:bg-green-600 dark:hover:bg-green-700 flex items-center justify-center w-full sm:w-auto'
+          title='View Chapters'
         >
-          <EyeIcon/>
+          <EyeIcon className='mr-2' />
+          View
         </Button>
       </CardFooter>
     </Card>
