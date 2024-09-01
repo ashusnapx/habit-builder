@@ -181,7 +181,7 @@ const SubjectList = () => {
   if (loading) {
     return (
       <div className='mt-20 p-4'>
-        <h1 className='mt-5 mb-5 ml-4 text-2xl font-semibold tracking-tighter'>
+        <h1 className='mt-5 mb-5 ml-4 text-2xl font-semibold tracking-tighter capitalize'>
           {getGreeting()} {user?.user?.name || "Guest"} 👋🏻
         </h1>
         <div className='grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3'>
@@ -203,9 +203,9 @@ const SubjectList = () => {
   }
 
   return (
-    <div className='mt-12 md:mt-20 p-4'>
+    <div className='mt-12 md:mt-20 p-1'>
       <div className='flex md:items-center justify-between flex-col md:flex-row'>
-        <h1 className='mt-5 md:mb-5 ml-4 text-2xl font-semibold tracking-tighter'>
+        <h1 className='mt-5 md:mb-5 ml-4 text-2xl font-semibold tracking-tighter capitalize'>
           {getGreeting()}{" "}
           <span className='text-blue-600 capitalize'>
             {user?.user?.name || "Guest"}
@@ -236,7 +236,7 @@ const SubjectList = () => {
       </div>
 
       {/* Search Bar */}
-      <div className='mb-6'>
+      <div className='mb-6 rounded-full'>
         <Select
           options={subjects.map((subject) => ({
             value: subject.$id,
@@ -251,7 +251,7 @@ const SubjectList = () => {
             }
           }}
           placeholder='Search subjects...'
-          className='capitalize dark:text-black rounded-full'
+          className='capitalize dark:text-black'
         />
       </div>
 

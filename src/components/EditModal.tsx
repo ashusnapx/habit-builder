@@ -17,7 +17,7 @@ interface EditModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSubjectUpdated: (updatedSubject: any) => void;
-  subject: any; // Update the type according to your subject structure
+  subject: any;
 }
 
 const EditModal = ({
@@ -48,15 +48,20 @@ const EditModal = ({
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose} >
-      <DialogContent className="m-4">
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className='m-4'>
         <DialogHeader>
           <DialogTitle>Edit Subject</DialogTitle>
         </DialogHeader>
+
+        <DialogDescription className='capitalize'>
+          hola amigo! kaise ho theek ho?{" "}
+        </DialogDescription>
         <Input
           value={newTitle}
           onChange={(e) => setNewTitle(e.target.value)}
           placeholder='Enter new title'
+          className="capitalize"
         />
         <div className='mt-4 flex gap-2'>
           <Button onClick={handleUpdate} disabled={loading}>
