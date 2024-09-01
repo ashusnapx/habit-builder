@@ -1,3 +1,24 @@
+import { useState, useEffect } from "react";
+import { account } from "@/lib/appwrite";
+
+export const useAuth = () => {
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+
+  useEffect(() => {
+    const checkAuthentication = async () => {
+      try {
+        const session = await account.getSession("current");
+        setIsAuthenticated(!!session);
+      } catch (error) {
+        setIsAuthenticated(false);
+      }
+    };
+
+    checkAuthentication();
+  }, []);
+
+  return isAuthenticated;
+};
 import { useState, useEffect, useCallback } from "react";
 import { fetchChapters, updateChapterCompletion } from "@/lib/appwrite";
 
@@ -6,23 +27,23 @@ export const useChapters = (subjectId: string) => {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (!subjectId) return;
-
-    const getChapters = async () => {
-      setLoading(true);
-      try {
-        const chapters = await fetchChapters(subjectId);
-        setChapters(chapters);
-      } catch (error) {
-        setError("Error loading chapters");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    getChapters();
+  const getChapters = useCallback(async () => {
+    setLoading(true);
+    try {
+      const chapters = await fetchChapters(subjectId);
+      setChapters(chapters);
+    } catch (error) {
+      setError("Error loading chapters");
+    } finally {
+      setLoading(false);
+    }
   }, [subjectId]);
+
+  useEffect(() => {
+    if (subjectId) {
+      getChapters();
+    }
+  }, [subjectId, getChapters]);
 
   const handleCompleteChange = useCallback(
     async (id: string, completed: boolean) => {
@@ -51,10 +72,9 @@ export const useChapters = (subjectId: string) => {
     loading,
     error,
     handleCompleteChange,
+    refetchChapters: getChapters,
   };
 };
-
-
 "use client";
 
 import { useState } from "react";
@@ -78,8 +98,6 @@ export const useCreateChapter = () => {
 
   return { addChapter, loading, error };
 };
-
-
 import { useState, useEffect } from "react";
 import { fetchSubjects as appwriteFetchSubjects } from "@/lib/appwrite";
 
@@ -91,7 +109,14 @@ export const useFetchSubjects = () => {
     const fetchSubjects = async () => {
       try {
         const subjects = await appwriteFetchSubjects();
-        setSubjects(subjects);
+
+        // Ensure each subject has `lastOpened` as a Date object
+        const subjectsWithDates = subjects.map((subject) => ({
+          ...subject,
+          lastOpened: new Date(subject.lastOpened || new Date(0)),
+        }));
+
+        setSubjects(subjectsWithDates);
         setError(null);
       } catch (err) {
         setError("Failed to fetch subjects.");
@@ -104,8 +129,30 @@ export const useFetchSubjects = () => {
 
   return { subjects, error };
 };
+import { useState, useEffect } from "react";
+import { account } from "@/lib/appwrite";
 
+export const useFetchUser = () => {
+  const [user, setUser] = useState<any>(null);
+  const [error, setError] = useState<string | null>(null);
 
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const user = await account.get();
+        setUser(user);
+        setError(null);
+      } catch (err) {
+        setError("Failed to fetch user details.");
+        setUser(null);
+      }
+    };
+
+    fetchUser();
+  }, []);
+
+  return { user, error };
+};
 import { useState } from "react";
 import { signIn as appwriteSignIn } from "@/lib/appwrite";
 
@@ -132,7 +179,63 @@ export const useSignIn = () => {
 
   return { signIn, error, success };
 };
+import { useState } from "react";
+import { signOut as appwriteSignOut } from "@/lib/appwrite";
 
+export const useSignOut = () => {
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
+
+  const signOut = async () => {
+    try {
+      await appwriteSignOut();
+      setSuccess("Sign out successful!");
+      setError(null);
+    } catch (err) {
+      setError("Sign out failed. Please try again.");
+      setSuccess(null);
+    }
+  };
+
+  return { signOut, error, success };
+};
+import { useState } from "react";
+import {
+  signUp as appwriteSignUp,
+  database,
+  appwriteConfig,
+} from "@/lib/appwrite";
+
+export const useSignUp = () => {
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
+
+  const signUp = async (email: string, password: string, name: string) => {
+    try {
+      // Create user account in Appwrite
+      const user = await appwriteSignUp(email, password, name);
+
+      // Add user to the database collection
+      await database.createDocument(
+        appwriteConfig.databaseId,
+        appwriteConfig.userCollectionId,
+        user.$id,
+        { name, email, password }
+      );
+
+      setSuccess("Sign up successful!");
+      setError(null);
+      return { success: true };
+    } catch (err: any) {
+      const errorMessage = err.message || "Sign up failed. Please try again.";
+      setError(errorMessage);
+      setSuccess(null);
+      return { success: false };
+    }
+  };
+
+  return { signUp, error, success };
+};
 import { useState, useCallback } from "react";
 import { appwriteConfig, database, getCurrentUserId } from "@/lib/appwrite";
 
@@ -236,8 +339,6 @@ export const useSubject = () => {
     error,
   };
 };
-
-
 // hooks/useSubjectsProgress.ts
 import { useState, useEffect, ChangeEvent } from "react";
 import { fetchSubjects, fetchChapters } from "@/lib/appwrite";
@@ -314,4 +415,3 @@ export const useSubjectsProgress = () => {
     handleTargetDateChange,
   };
 };
-

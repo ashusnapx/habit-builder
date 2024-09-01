@@ -73,7 +73,7 @@ const SubjectCard = ({
 
   return (
     <Card className='w-full max-w-md mx-auto bg-white dark:bg-gray-800 shadow-md rounded-lg border border-gray-200 dark:border-gray-700 transition-transform transform hover:scale-105 mb-8'>
-      <CardHeader className='flex items-center gap-4 p-6 bg-custom-bg dark:bg-gray-700 rounded-t-lg'>
+      <CardHeader className='flex flex-row items-center gap-4 p-6 bg-custom-bg dark:bg-gray-700 rounded-t-lg'>
         <Avatar
           name={title}
           size='60'

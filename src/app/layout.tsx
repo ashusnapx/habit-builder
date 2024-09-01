@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
@@ -11,7 +11,6 @@ export const metadata: Metadata = {
   title: "HabitAI",
   description:
     "HabitAI - Your go-to app for managing and tracking habits with intelligent insights.",
-  viewport: "width=device-width, initial-scale=1",
   robots: "index, follow",
   openGraph: {
     title: "HabitAI",
@@ -37,6 +36,12 @@ export const metadata: Metadata = {
       "HabitAI - Your go-to app for managing and tracking habits with intelligent insights.",
     images: "https://habit-ai-lake.vercel.app/twitter-image.jpg",
   },
+};
+
+// Separate viewport export
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
 };
 
 export default function RootLayout({
