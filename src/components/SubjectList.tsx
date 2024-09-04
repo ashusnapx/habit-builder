@@ -17,6 +17,8 @@ import { useFetchUser } from "@/hooks";
 import DeleteConfirmationDialog from "./DeleteConfirmationDialog";
 import Select from "react-select";
 import { motion } from "framer-motion";
+import { Badge } from "./ui/badge";
+import ShinyBadge from "./ShinyBadge";
 
 const SubjectList: React.FC = () => {
   const user = useFetchUser();
@@ -199,7 +201,7 @@ const SubjectList: React.FC = () => {
         <div className='flex flex-col space-y-2'>
           <h1 className='text-3xl font-bold tracking-tight text-gray-900 dark:text-gray-100'>
             {getGreeting()},{" "}
-            <span className='text-blue-600 dark:text-blue-400 capitalize'>
+            <span className='text-blue-600 dark:text-blue-400 capitalize '>
               {user?.user?.name || "Guest"}
             </span>{" "}
             👋🏻
@@ -209,6 +211,7 @@ const SubjectList: React.FC = () => {
               ? "Create subjects to start your journey!"
               : "Here are your subjects:"}
           </p>
+          <ShinyBadge/>
         </div>
 
         <div className='flex flex-col mt-4 md:mt-0 space-y-1 md:text-right'>
