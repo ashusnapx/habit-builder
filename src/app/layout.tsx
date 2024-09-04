@@ -62,7 +62,10 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <Navbar />
-          <main className='flex-grow p-4 sm:p-6 lg:p-8'>{children}</main>
+          <main className='flex-grow p-4 sm:p-6 lg:p-8 bg-gradient-to-r from-blue-50 via-white to-blue-50 dark:bg-gradient-to-r dark:from-gray-800 dark:via-gray-900 dark:to-gray-800'>
+            {children}
+          </main>
+
           <Footer />
         </ThemeProvider>
       </body>

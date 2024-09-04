@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Button } from "./ui/button";
 import CreateModal from "./CreateModal";
 import { ModeToggle } from "./ModeToggle";
@@ -17,6 +17,7 @@ const Navbar = () => {
   const [isMenuOpen, setMenuOpen] = useState(false);
   const router = useRouter();
   const user = useFetchUser();
+  const menuRef = useRef<HTMLDivElement>(null);
 
   const openModal = () => setModalOpen(true);
   const closeModal = () => setModalOpen(false);
@@ -61,9 +62,21 @@ const Navbar = () => {
     checkAuthentication();
   }, [user.user]);
 
+  useEffect(() => {
+    // Close menu if clicked outside
+    const handleClickOutside = (event: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setMenuOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
   return (
-    <header className='fixed top-0 left-0 w-full z-50 bg-white dark:bg-black shadow-lg capitalize'>
-      <div className='flex flex-col md:flex-row items-center justify-between p-4 md:p-6 border-b border-gray-200 dark:border-gray-700'>
+    <header className='fixed top-0 left-0 w-full z-50 bg-white dark:bg-gray-900 shadow-lg capitalize'>
+      <div className='flex flex-col md:flex-row items-center justify-between p-2 md:px-12 border-b border-gray-200 dark:border-gray-700'>
         <div className='flex items-center justify-between w-full md:w-auto space-x-4'>
           <Link
             href='/'
@@ -87,6 +100,7 @@ const Navbar = () => {
         </div>
 
         <nav
+          ref={menuRef}
           className={`fixed md:static inset-0 top-16 left-0 md:flex md:items-center md:space-x-6 md:top-0 md:inset-auto ${
             isMenuOpen
               ? "block bg-white dark:bg-black md:bg-transparent md:flex"
@@ -96,9 +110,11 @@ const Navbar = () => {
           <div className='flex flex-col md:flex-row items-center space-y-4 md:space-y-0 md:space-x-4 mt-4 md:mt-0 gap-3'>
             {isAuthenticated ? (
               <div className='flex flex-col md:flex-row gap-2 md:gap-2 w-fit'>
-                {/* <TargetModal /> */}
                 <Button
-                  onClick={openModal}
+                  onClick={() => {
+                    openModal();
+                    setMenuOpen(false);
+                  }}
                   className='flex items-center space-x-2 md:space-x-1'
                   variant='outline'
                 >
@@ -106,7 +122,10 @@ const Navbar = () => {
                   <span>Create</span>
                 </Button>
                 <Button
-                  onClick={handleSignOut}
+                  onClick={() => {
+                    handleSignOut();
+                    setMenuOpen(false);
+                  }}
                   className='flex items-center space-x-2 md:space-x-1 hover:bg-red-500 hover:text-white'
                   variant='outline'
                 >
@@ -116,14 +135,29 @@ const Navbar = () => {
               </div>
             ) : (
               <div className='flex flex-col md:flex-row gap-2 md:gap-4'>
-                <Button onClick={handleSignIn}>Sign In</Button>
-                <Button onClick={handleSignUp}>Sign Up</Button>
+                <Button
+                  onClick={() => {
+                    handleSignIn();
+                    setMenuOpen(false);
+                  }}
+                >
+                  Sign In
+                </Button>
+                <Button
+                  onClick={() => {
+                    handleSignUp();
+                    setMenuOpen(false);
+                  }}
+                >
+                  Sign Up
+                </Button>
               </div>
             )}
             <Link
               href='https://ashusnapx.vercel.app/'
               className='flex items-center space-x-2 md:space-x-1 text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400'
-              target="_blank"
+              target='_blank'
+              onClick={() => setMenuOpen(false)}
             >
               <Github size={18} />
               <span>Github</span>

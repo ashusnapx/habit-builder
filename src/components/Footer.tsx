@@ -6,7 +6,7 @@ import { ModeToggle } from "./ModeToggle";
 
 const Footer = () => {
   return (
-    <footer className='bg-gray-100 dark:bg-gray-900 text-gray-800 dark:text-gray-200 tracking-tighter border-t border-gray-200 dark:border-gray-700'>
+    <footer className='bg-gradient-to-r from-blue-100 via-white to-blue-200 dark:bg-gradient-to-r dark:from-gray-800 dark:via-gray-900 dark:to-gray-800 text-gray-800 dark:text-gray-200 tracking-tighter border-t border-gray-200 dark:border-gray-700'>
       <div className='container mx-auto py-6 px-4'>
         <div className='flex flex-col md:flex-row justify-between items-center'>
           <div className='flex flex-col items-center md:items-start'>
