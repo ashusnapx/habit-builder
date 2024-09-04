@@ -165,8 +165,8 @@ const SubjectList: React.FC = () => {
 
   if (loading) {
     return (
-      <div className='mt-12 p-4'>
-        <h1 className='mt-5 mb-5 text-2xl font-semibold tracking-tighter capitalize text-gray-800 dark:text-gray-200'>
+      <div className='p-4'>
+        <h1 className='mb-5 text-2xl font-semibold tracking-tighter capitalize text-gray-800 dark:text-gray-200'>
           {getGreeting()} {user?.user?.name || "Guest"} 👋🏻
         </h1>
         <div className='grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3'>
@@ -195,7 +195,7 @@ const SubjectList: React.FC = () => {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.5 }}
-      className='mt-12 md:mt-20 p-4'
+      className=' p-4'
     >
       <div className='flex flex-col md:flex-row md:items-center justify-between mb-6'>
         <div className='flex flex-col space-y-2'>
@@ -211,7 +211,7 @@ const SubjectList: React.FC = () => {
               ? "Create subjects to start your journey!"
               : "Here are your subjects:"}
           </p>
-          <ShinyBadge/>
+          <ShinyBadge label="Free Tier"/>
         </div>
 
         <div className='flex flex-col mt-4 md:mt-0 space-y-1 md:text-right'>

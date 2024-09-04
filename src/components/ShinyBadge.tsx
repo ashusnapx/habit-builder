@@ -1,7 +1,11 @@
 import { motion } from "framer-motion";
 import { Badge } from "./ui/badge"; // Adjust import path as needed
 
-const ShinyBadge = () => {
+interface ShinyBadgeProps {
+  label: string;
+}
+
+const ShinyBadge: React.FC<ShinyBadgeProps> = ({ label }) => {
   return (
     <motion.div
       className='relative inline-block'
@@ -10,7 +14,7 @@ const ShinyBadge = () => {
       transition={{ duration: 2, ease: "easeInOut", repeat: Infinity }}
     >
       <Badge className='w-fit text-base relative overflow-hidden'>
-        Free tier
+        {label}
         <motion.div
           className='absolute top-0 left-0 w-full h-full bg-gradient-to-r from-transparent via-white opacity-30'
           initial={{ x: "-100%" }}
