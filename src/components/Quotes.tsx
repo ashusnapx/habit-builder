@@ -21,7 +21,7 @@ if (!apiKey) {
 }
 
 const genAI = new GoogleGenerativeAI(apiKey);
-const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+const model = genAI.getGenerativeModel({ model: "gemini-1.5-pro" });
 
 const generateQuote = async (subject: string): Promise<Quote[]> => {
   try {
@@ -66,7 +66,7 @@ const Quotes = () => {
   }, []);
 
   // Function to handle swipe action
-  const handleSwipe = (direction: number) => {
+  const handleNavigation = (direction: number) => {
     setCurrentIndex((prevIndex) => {
       const newIndex = prevIndex + direction;
       if (newIndex < 0) return subjects.length - 1;
@@ -100,23 +100,11 @@ const Quotes = () => {
                   animate={{ x: 0, opacity: 1 }}
                   exit={{ x: -300, opacity: 0 }}
                   transition={{ duration: 0.5 }}
-                  drag='x'
-                  dragConstraints={{ left: 0, right: 0 }}
-                  dragElastic={0.2}
-                  onDragEnd={(event, info) => {
-                    if (info.offset.x > 50) {
-                      handleSwipe(-1);
-                    } else if (info.offset.x < -50) {
-                      handleSwipe(1);
-                    }
-                  }}
                 >
-                  <Card className='bg-white dark:bg-gray-800 shadow-lg md:h-40 overflow-y-auto'>
+                  <Card className='bg-white dark:bg-gray-800 shadow-lg md:h-48 overflow-y-auto'>
                     <CardContent className='p-6'>
-                      <div className="flex flex-col md:flex-row md:gap-2 mb-2">
-                        <h2 className='text-xl font-bold mb-4 tracking-wide'>{`${subject} Related Quotes:`}</h2>
-                        <ShinyBadge label='Swipe to see next &rarr;' />
-                      </div>
+                      <h2 className='text-xl font-bold mb-4 tracking-wide'>{`${subject} Related Quotes:`}</h2>
+
                       {groupedQuotes[subject]?.map((quote, index) => (
                         <motion.div
                           key={index}
@@ -130,6 +118,20 @@ const Quotes = () => {
                           </ReactMarkdown>
                         </motion.div>
                       ))}
+                      <div className='flex justify-between mt-4'>
+                        <button
+                          className='px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition'
+                          onClick={() => handleNavigation(-1)}
+                        >
+                          Previous
+                        </button>
+                        <button
+                          className='px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition'
+                          onClick={() => handleNavigation(1)}
+                        >
+                          Next
+                        </button>
+                      </div>
                     </CardContent>
                   </Card>
                 </motion.div>
