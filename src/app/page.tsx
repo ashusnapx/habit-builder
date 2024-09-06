@@ -3,9 +3,9 @@ import Quotes from "@/components/Quotes";
 
 export default function Home() {
   return (
-    <>
-      <Quotes />
+    <div className="mt-12">
+      {/* <Quotes /> */}
       <SubjectList />
-    </>
+    </div>
   );
 }
