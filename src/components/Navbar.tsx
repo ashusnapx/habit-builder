@@ -115,7 +115,7 @@ const Navbar = () => {
                     openModal();
                     setMenuOpen(false);
                   }}
-                  className='flex items-center space-x-2 md:space-x-1'
+                  className='flex items-center space-x-2 md:space-x-1 hover:bg-green-700 hover:text-white'
                   variant='outline'
                 >
                   <PlusIcon size={18} />
@@ -126,7 +126,7 @@ const Navbar = () => {
                     handleSignOut();
                     setMenuOpen(false);
                   }}
-                  className='flex items-center space-x-2 md:space-x-1 hover:bg-red-500 hover:text-white'
+                  className='flex items-center space-x-2 md:space-x-1 hover:bg-red-600 hover:text-white'
                   variant='outline'
                 >
                   <LogOutIcon size={18} />
