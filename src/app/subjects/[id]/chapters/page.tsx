@@ -1,5 +1,4 @@
 "use client";
-
 import React, { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
 import { Input } from "@/components/ui/input";
@@ -10,6 +9,17 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useChapters, useCreateChapter, useSubject } from "@/hooks";
 import ChapterCard from "@/components/ChapterCard";
 import { motion, AnimatePresence } from "framer-motion";
+import { Switch } from "@/components/ui/switch";
+import {
+  Table,
+  TableBody,
+  TableCaption,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Label } from "@/components/ui/label";
 
 const ChaptersPage = () => {
   const { id: subjectIdParam } = useParams();
@@ -29,6 +39,7 @@ const ChaptersPage = () => {
   const [isConfettiActive, setConfettiActive] = useState(false);
   const [subjectTitle, setSubjectTitle] = useState<string | null>(null);
   const [completionPercentage, setCompletionPercentage] = useState(0);
+  const [isSimpleView, setIsSimpleView] = useState(false);
 
   useEffect(() => {
     const allChaptersCompleted = chapters.every((chapter) => chapter.completed);
@@ -37,7 +48,6 @@ const ChaptersPage = () => {
       setTimeout(() => setConfettiActive(false), 5000);
     }
 
-    // Calculate percentage completion
     const completedCount = chapters.filter(
       (chapter) => chapter.completed
     ).length;
@@ -74,6 +84,15 @@ const ChaptersPage = () => {
       } catch (err) {
         console.error("Failed to add chapters:", err);
       }
+    }
+  };
+
+  const handleUndoComplete = async (chapterId: string) => {
+    try {
+      await handleCompleteChange(chapterId, false); // Pass `false` to mark as not completed
+      refetchChapters();
+    } catch (err) {
+      console.error("Failed to undo chapter completion:", err);
     }
   };
 
@@ -189,6 +208,7 @@ const ChaptersPage = () => {
           {completionPercentage.toFixed(2)}%
         </motion.div>
       </motion.div>
+
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -221,34 +241,90 @@ const ChaptersPage = () => {
           </motion.p>
         )}
       </motion.div>
-      <AnimatePresence>
-        <motion.div
-          initial='initial'
-          animate='in'
-          exit='out'
-          variants={cardVariants}
-          transition={{ duration: 0.5, staggerChildren: 0.1 }}
-          className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6'
-        >
-          {[...chapters].reverse().map((chapter, index) => (
-            <motion.div
-              key={chapter.$id}
-              variants={cardVariants}
-              transition={{ duration: 0.3, delay: index * 0.05 }}
-              layout
-              whileHover={{ scale: 1.03, transition: { duration: 0.2 } }}
-            >
-              <ChapterCard
-                id={chapter.$id}
-                title={chapter.title}
-                completed={chapter.completed}
-                onCompleteChange={handleCompleteChange}
-                createdAt={chapter.createdAt}
-              />
-            </motion.div>
-          ))}
-        </motion.div>
-      </AnimatePresence>
+
+      <div className='flex items-center space-x-4 mb-6'>
+        <Switch
+          id='view-toggle'
+          checked={isSimpleView}
+          onCheckedChange={(checked) => setIsSimpleView(checked)}
+        />
+        <Label htmlFor='view-toggle'>Simple View</Label>
+      </div>
+
+      {isSimpleView ? (
+        <Table>
+          <TableCaption>A list of your chapters.</TableCaption>
+          <TableHeader>
+            <TableRow>
+              <TableHead className='w-[50px]'>Sr No</TableHead>
+              <TableHead>Chapter Name</TableHead>
+              <TableHead>Status</TableHead>
+              <TableHead>Created On</TableHead>
+              <TableHead>Actions</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {[...chapters].reverse().map((chapter, index) => (
+              <TableRow key={chapter.$id}>
+                <TableCell>{index + 1}</TableCell>
+                <TableCell className='capitalize'>{chapter.title}</TableCell>
+                <TableCell>
+                  {chapter.completed ? "Completed" : "Pending"}
+                </TableCell>
+                <TableCell>
+                  {new Date(chapter.createdAt).toLocaleDateString()}
+                </TableCell>
+                <TableCell>
+                  {chapter.completed ? (
+                    <Button
+                      onClick={() => handleUndoComplete(chapter.$id)}
+                      className='bg-red-600 text-white'
+                    >
+                      Undo
+                    </Button>
+                  ) : (
+                    <Button
+                      onClick={() => handleCompleteChange(chapter.$id, true)}
+                      className='bg-blue-600 text-white'
+                    >
+                      Mark as Done
+                    </Button>
+                  )}
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      ) : (
+        <AnimatePresence>
+          <motion.div
+            initial='initial'
+            animate='in'
+            exit='out'
+            variants={cardVariants}
+            transition={{ duration: 0.5, staggerChildren: 0.1 }}
+            className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6'
+          >
+            {[...chapters].reverse().map((chapter, index) => (
+              <motion.div
+                key={chapter.$id}
+                variants={cardVariants}
+                transition={{ duration: 0.3, delay: index * 0.05 }}
+                layout
+                whileHover={{ scale: 1.03, transition: { duration: 0.2 } }}
+              >
+                <ChapterCard
+                  id={chapter.$id}
+                  title={chapter.title}
+                  completed={chapter.completed}
+                  onCompleteChange={handleCompleteChange}
+                  createdAt={chapter.createdAt}
+                />
+              </motion.div>
+            ))}
+          </motion.div>
+        </AnimatePresence>
+      )}
     </motion.div>
   );
 };
