@@ -211,7 +211,7 @@ const SubjectList: React.FC = () => {
               ? "Create subjects to start your journey!"
               : "Here are your subjects:"}
           </p>
-          <ShinyBadge label="Free Tier"/>
+          <ShinyBadge label='Free Tier' />
         </div>
 
         <div className='flex flex-col mt-4 md:mt-0 space-y-1 md:text-right'>
@@ -305,6 +305,7 @@ const SubjectList: React.FC = () => {
                 onEdit={() => handleEdit(subject)}
                 onDelete={() => handleDeleteClick(subject)}
                 onOpen={() => handleSubjectOpen(subject)}
+                createdAt={subject.createdAt}
                 lastOpened={subject.lastOpened}
               />
             </motion.div>

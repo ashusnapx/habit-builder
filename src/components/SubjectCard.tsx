@@ -31,7 +31,6 @@ import {
   DialogTrigger,
 } from "./ui/dialog";
 import { motion, AnimatePresence } from "framer-motion";
-import { Tooltip } from "@/components/ui/tooltip";
 
 // Utility function to get time of day emoji
 const getTimeOfDayEmoji = (date: Date) => {

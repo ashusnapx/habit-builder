@@ -14,6 +14,9 @@ export const useFetchSubjects = () => {
         const subjectsWithDates = subjects.map((subject) => ({
           ...subject,
           lastOpened: new Date(subject.lastOpened || new Date(0)),
+          createdAt: subject.createdAt
+            ? new Date(subject.createdAt)
+            : new Date(0),
         }));
 
         setSubjects(subjectsWithDates);
