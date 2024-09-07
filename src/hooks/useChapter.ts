@@ -10,7 +10,12 @@ export const useChapters = (subjectId: string) => {
     setLoading(true);
     try {
       const chapters = await fetchChapters(subjectId);
-      setChapters(chapters);
+      // Ensure each chapter has createdAt as a Date object
+      const chaptersWithDates = chapters.map((chapter) => ({
+        ...chapter,
+        createdAt: new Date(chapter.createdAt).toISOString(),
+      }));
+      setChapters(chaptersWithDates);
     } catch (error) {
       setError("Error loading chapters");
     } finally {

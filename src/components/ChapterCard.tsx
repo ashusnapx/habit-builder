@@ -15,6 +15,7 @@ interface ChapterCardProps {
   id: string;
   title: string;
   completed: boolean;
+  createdAt: string; // Adding created date
   onCompleteChange: (id: string, completed: boolean) => void;
 }
 
@@ -22,6 +23,7 @@ const ChapterCard = ({
   id,
   title,
   completed,
+  createdAt,
   onCompleteChange,
 }: ChapterCardProps) => {
   const [loading, setLoading] = useState(false);
@@ -59,6 +61,9 @@ const ChapterCard = ({
         </CardHeader>
       </div>
       <CardContent className='p-3'>
+        <p className='text-sm text-gray-600 dark:text-gray-400 mb-1'>
+          Created: {new Date(createdAt).toLocaleDateString()}
+        </p>
         <p className='text-sm text-gray-600 dark:text-gray-400 mb-3'>
           Status: {completed ? "Completed" : "Not Completed"}
         </p>
@@ -68,7 +73,7 @@ const ChapterCard = ({
           className={`w-full py-1 text-white ${
             completed ? "bg-gray-500" : "bg-orange-500"
           } flex items-center justify-center`}
-          disabled={loading} // Disable button while loading
+          disabled={loading}
         >
           {loading ? (
             <Disc3Icon size={18} className='animate-spin' />

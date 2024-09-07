@@ -243,6 +243,7 @@ const ChaptersPage = () => {
                 title={chapter.title}
                 completed={chapter.completed}
                 onCompleteChange={handleCompleteChange}
+                createdAt={chapter.createdAt}
               />
             </motion.div>
           ))}
