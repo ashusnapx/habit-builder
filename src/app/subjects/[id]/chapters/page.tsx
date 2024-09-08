@@ -241,90 +241,34 @@ const ChaptersPage = () => {
           </motion.p>
         )}
       </motion.div>
-
-      <div className='flex items-center space-x-4 mb-6'>
-        <Switch
-          id='view-toggle'
-          checked={isSimpleView}
-          onCheckedChange={(checked) => setIsSimpleView(checked)}
-        />
-        <Label htmlFor='view-toggle'>Simple View</Label>
-      </div>
-
-      {isSimpleView ? (
-        <Table>
-          <TableCaption>A list of your chapters.</TableCaption>
-          <TableHeader>
-            <TableRow>
-              <TableHead className='w-[50px]'>Sr No</TableHead>
-              <TableHead>Chapter Name</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Created On</TableHead>
-              <TableHead>Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {[...chapters].reverse().map((chapter, index) => (
-              <TableRow key={chapter.$id}>
-                <TableCell>{index + 1}</TableCell>
-                <TableCell className='capitalize'>{chapter.title}</TableCell>
-                <TableCell>
-                  {chapter.completed ? "Completed" : "Pending"}
-                </TableCell>
-                <TableCell>
-                  {new Date(chapter.createdAt).toLocaleDateString()}
-                </TableCell>
-                <TableCell>
-                  {chapter.completed ? (
-                    <Button
-                      onClick={() => handleUndoComplete(chapter.$id)}
-                      className='bg-red-600 text-white'
-                    >
-                      Undo
-                    </Button>
-                  ) : (
-                    <Button
-                      onClick={() => handleCompleteChange(chapter.$id, true)}
-                      className='bg-blue-600 text-white'
-                    >
-                      Mark as Done
-                    </Button>
-                  )}
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      ) : (
-        <AnimatePresence>
-          <motion.div
-            initial='initial'
-            animate='in'
-            exit='out'
-            variants={cardVariants}
-            transition={{ duration: 0.5, staggerChildren: 0.1 }}
-            className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6'
-          >
-            {[...chapters].reverse().map((chapter, index) => (
-              <motion.div
-                key={chapter.$id}
-                variants={cardVariants}
-                transition={{ duration: 0.3, delay: index * 0.05 }}
-                layout
-                whileHover={{ scale: 1.03, transition: { duration: 0.2 } }}
-              >
-                <ChapterCard
-                  id={chapter.$id}
-                  title={chapter.title}
-                  completed={chapter.completed}
-                  onCompleteChange={handleCompleteChange}
-                  createdAt={chapter.createdAt}
-                />
-              </motion.div>
-            ))}
-          </motion.div>
-        </AnimatePresence>
-      )}
+      <AnimatePresence>
+        <motion.div
+          initial='initial'
+          animate='in'
+          exit='out'
+          variants={cardVariants}
+          transition={{ duration: 0.5, staggerChildren: 0.1 }}
+          className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6'
+        >
+          {[...chapters].reverse().map((chapter, index) => (
+            <motion.div
+              key={chapter.$id}
+              variants={cardVariants}
+              transition={{ duration: 0.3, delay: index * 0.05 }}
+              layout
+              whileHover={{ scale: 1.03, transition: { duration: 0.2 } }}
+            >
+              <ChapterCard
+                id={chapter.$id}
+                title={chapter.title}
+                completed={chapter.completed}
+                onCompleteChange={handleCompleteChange}
+                createdAt={chapter.createdAt}
+              />
+            </motion.div>
+          ))}
+        </motion.div>
+      </AnimatePresence>
     </motion.div>
   );
 };

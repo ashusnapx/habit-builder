@@ -15,8 +15,9 @@ interface ChapterCardProps {
   id: string;
   title: string;
   completed: boolean;
-  createdAt: string; // Adding created date
+  
   onCompleteChange: (id: string, completed: boolean) => void;
+  createdAt: string;
 }
 
 const ChapterCard = ({
