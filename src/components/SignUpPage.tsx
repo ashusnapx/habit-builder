@@ -15,6 +15,7 @@ import { Button } from "@/components/ui/button";
 import { useSignUp } from "@/hooks/useSignUp";
 import { useFetchUser } from "@/hooks/useFetchUser";
 import { signIn } from "@/lib/appwrite";
+import { Eye, EyeOff } from "lucide-react"; // Import icons
 
 const SignUpPage = () => {
   const [formData, setFormData] = useState({
@@ -23,11 +24,10 @@ const SignUpPage = () => {
     name: "",
   });
 
-  const { signUp, error, success } = useSignUp(); // Use the custom hook
+  const [showPassword, setShowPassword] = useState(false); // State to toggle password visibility
+  const { signUp, error, success } = useSignUp();
   const router = useRouter();
   const { user } = useFetchUser();
-
-  console.table(user);
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -47,7 +47,7 @@ const SignUpPage = () => {
     const { id, value } = e.target;
     setFormData((prev) => ({
       ...prev,
-      [id]: id === "password" ? value.slice(0, 8) : value.slice(0, 50), // Limit characters
+      [id]: value,
     }));
   };
 
@@ -68,7 +68,7 @@ const SignUpPage = () => {
     },
     {
       id: "password",
-      type: "password",
+      type: showPassword ? "text" : "password", // Toggle password type based on showPassword state
       placeholder: "Enter your password",
       label: "Password",
       value: formData.password,
@@ -88,7 +88,7 @@ const SignUpPage = () => {
           <form onSubmit={handleSignUp}>
             <div className='space-y-4'>
               {inputs.map((input) => (
-                <div key={input.id}>
+                <div key={input.id} className='relative'>
                   <Label htmlFor={input.id}>{input.label}</Label>
                   <Input
                     id={input.id}
@@ -96,7 +96,17 @@ const SignUpPage = () => {
                     value={input.value}
                     onChange={handleChange}
                     placeholder={input.placeholder}
+                    className='pr-10' // Add padding to the right for the icon
                   />
+                  {input.id === "password" && (
+                    <button
+                      type='button'
+                      onClick={() => setShowPassword(!showPassword)}
+                      className='absolute top-9 right-3 text-gray-600'
+                    >
+                      {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                    </button>
+                  )}
                 </div>
               ))}
             </div>
