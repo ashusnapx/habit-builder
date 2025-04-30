@@ -1,221 +1,325 @@
-"use client";
-
-import React, { useState } from "react";
-import Avatar from "react-avatar";
-import {
-  Card,
-  CardContent,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "./ui/card";
-import { Button } from "./ui/button";
-import { Progress } from "@/components/ui/progress";
-import { useRouter } from "next/navigation";
-import {
-  Edit3Icon,
-  EyeIcon,
-  MoreHorizontalIcon,
-  Trash2Icon,
-  ChevronDownIcon,
-  ChevronUpIcon,
-  BookOpenIcon,
-  ClockIcon,
-} from "lucide-react";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "./ui/dialog";
-import { motion, AnimatePresence } from "framer-motion";
-
-// Utility function to get time of day emoji
-const getTimeOfDayEmoji = (date: Date) => {
-  const hours = date.getHours();
-  if (hours >= 5 && hours < 12) return "🌅"; // Morning
-  if (hours >= 12 && hours < 17) return "🌞"; // Afternoon
-  if (hours >= 17 && hours < 20) return "🌆"; // Evening
-  return "🌙"; // Night
-};
-
-const truncateText = (text: string, maxLength: number) => {
-  if (text.length > maxLength) {
-    return text.slice(0, maxLength) + "..."; // Append ellipsis if truncated
-  }
-  return text;
-};
-
-// Format date as "MMM D, YYYY h:mm A"
-const formatDate = (date: Date) => {
-  const options: Intl.DateTimeFormatOptions = {
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-    hour: "numeric",
-    minute: "numeric",
-    hour12: true,
-  };
-  return date.toLocaleDateString("en-US", options);
-};
+import React from "react";
+import { motion } from "framer-motion";
+import { formatDistanceToNow } from "date-fns";
+import { Chapter } from "../../types/subject";
 
 interface SubjectCardProps {
   id: string;
   title: string;
-  description?: string;
+  description: string;
   completedChapters: number;
   totalChapters: number;
-  onEdit: (id: string) => void;
-  onDelete: (id: string) => void;
-  onOpen?: () => void;
-  createdAt?: Date;
-  lastOpened?: Date;
-  studyStreak?: number;
-  averageStudyTime?: number;
+  progressPercentage: number;
+  onEdit: () => void;
+  onDelete: () => void;
+  onOpen: () => void;
+  createdAt: Date;
+  lastOpened: Date;
+  viewMode: "grid" | "list";
+  chapters?: Chapter[];
 }
 
-const SubjectCard = ({
+/**
+ * Card component displaying subject details and actions
+ */
+const SubjectCard: React.FC<SubjectCardProps> = ({
   id,
   title,
   description,
   completedChapters,
   totalChapters,
+  progressPercentage,
   onEdit,
   onDelete,
   onOpen,
   createdAt,
   lastOpened,
-  studyStreak = 0,
-  averageStudyTime = 0,
-}: SubjectCardProps) => {
-  const router = useRouter();
-  const [isExpanded, setIsExpanded] = useState(false);
-
-  const handleViewChapters = () => {
-    router.push(`/subjects/${id}/chapters`);
-    if (onOpen) onOpen();
+  viewMode,
+  chapters,
+}) => {
+  const formatTimeAgo = (date: Date) => {
+    try {
+      if (date && date.getTime() > 0) {
+        return formatDistanceToNow(date, { addSuffix: true });
+      }
+      return "Never";
+    } catch (error) {
+      console.error("Error formatting date:", error);
+      return "Invalid date";
+    }
   };
 
-  const progressPercentage =
-    totalChapters > 0 ? (completedChapters / totalChapters) * 100 : 0;
-  const maxLength = 20;
-  const truncatedTitle = truncateText(title, maxLength);
+  // Generate a random but consistent color based on subject title
+  const getSubjectColor = (title: string) => {
+    const colors = [
+      "bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200",
+      "bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-200",
+      "bg-purple-100 dark:bg-purple-900/30 text-purple-800 dark:text-purple-200",
+      "bg-pink-100 dark:bg-pink-900/30 text-pink-800 dark:text-pink-200",
+      "bg-amber-100 dark:bg-amber-900/30 text-amber-800 dark:text-amber-200",
+      "bg-indigo-100 dark:bg-indigo-900/30 text-indigo-800 dark:text-indigo-200",
+    ];
 
-  return (
-    <Card className='w-full max-w-sm md:max-w-md mx-auto bg-white dark:bg-gray-900 shadow-lg rounded-lg border border-gray-200 dark:border-gray-700 mb-6 overflow-hidden transition-all duration-300 ease-in-out'>
-      <CardHeader className='flex flex-col md:flex-row items-center gap-4 p-4 bg-gradient-to-r from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-700 text-gray-800 dark:text-gray-200 relative'>
-        <Avatar
-          name={title}
-          size='60'
-          round={true}
-          className='border-2 border-white'
-        />
-        <div className='flex flex-col justify-between items-center md:items-start flex-grow'>
-          <CardTitle className='text-xl font-semibold dark:text-white truncate whitespace-normal capitalize text-black'>
-            {truncatedTitle}
-          </CardTitle>
-          <div className='text-xs text-gray-800 dark:text-gray-300 mt-2 flex items-center'>
-            <ClockIcon className='w-4 h-4 mr-1' />
-            <p>
-              Last opened:{" "}
-              {lastOpened
-                ? `${formatDate(new Date(lastOpened))} ${getTimeOfDayEmoji(
-                    new Date(lastOpened)
-                  )}`
-                : "N/A"}
+    // Simple hash function
+    let hash = 0;
+    for (let i = 0; i < title.length; i++) {
+      hash = title.charCodeAt(i) + ((hash << 5) - hash);
+    }
+
+    return colors[Math.abs(hash) % colors.length];
+  };
+
+  const subjectColorClass = getSubjectColor(title);
+  const iconLetter = title.charAt(0).toUpperCase();
+
+  // Determine status based on progress
+  const getStatusBadge = () => {
+    if (totalChapters === 0) {
+      return (
+        <span className='px-2 py-1 text-xs rounded-full bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400'>
+          Empty
+        </span>
+      );
+    } else if (progressPercentage === 100) {
+      return (
+        <span className='px-2 py-1 text-xs rounded-full bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300'>
+          Completed
+        </span>
+      );
+    } else if (progressPercentage > 0) {
+      return (
+        <span className='px-2 py-1 text-xs rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300'>
+          In Progress
+        </span>
+      );
+    } else {
+      return (
+        <span className='px-2 py-1 text-xs rounded-full bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300'>
+          Not Started
+        </span>
+      );
+    }
+  };
+
+  if (viewMode === "list") {
+    return (
+      <motion.div
+        whileHover={{ y: -2, transition: { duration: 0.2 } }}
+        className='bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-md transition-all duration-200'
+      >
+        <div className='p-5 flex items-center'>
+          <div
+            className={`flex-shrink-0 flex items-center justify-center w-12 h-12 rounded-lg mr-4 ${subjectColorClass}`}
+          >
+            {iconLetter}
+          </div>
+
+          <div className='flex-grow min-w-0'>
+            <div className='flex items-center justify-between mb-1'>
+              <h3 className='text-lg font-semibold text-gray-900 dark:text-gray-100 truncate capitalize'>
+                {title}
+              </h3>
+              {getStatusBadge()}
+            </div>
+
+            <p className='text-sm text-gray-600 dark:text-gray-400 line-clamp-1'>
+              {description || "No description provided"}
             </p>
           </div>
-        </div>
-        <Button
-          variant='ghost'
-          size='icon'
-          onClick={() => setIsExpanded(!isExpanded)}
-          className='text-black hover:bg-white/20 dark:text-white dark:hover:bg-gray-700'
-        >
-          {isExpanded ? <ChevronUpIcon /> : <ChevronDownIcon />}
-        </Button>
-      </CardHeader>
-      <CardContent className='p-4'>
-        <div className='mb-4'>
-          <Progress
-            value={progressPercentage}
-            className='w-full h-2 bg-gray-200 dark:bg-gray-700'
-          />
-          <div className='mt-2 text-sm text-gray-600 dark:text-gray-300 flex flex-col md:flex-row justify-between items-center'>
-            <span>{progressPercentage.toFixed(1)}% Complete</span>
-            <span className='flex items-center'>
-              <BookOpenIcon className='w-4 h-4 mr-1' />
-              {completedChapters} / {totalChapters} Chapters
-            </span>
+
+          <div className='flex-shrink-0 ml-4 flex items-center'>
+            <div className='mr-4 text-right'>
+              <div className='text-xs text-gray-500 dark:text-gray-400'>
+                Progress
+              </div>
+              <div className='text-sm font-medium text-gray-700 dark:text-gray-300'>
+                {completedChapters}/{totalChapters} chapters
+              </div>
+            </div>
+
+            <div className='flex space-x-2'>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onEdit();
+                }}
+                className='p-2 text-gray-500 hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-400 transition-colors'
+              >
+                <svg
+                  xmlns='http://www.w3.org/2000/svg'
+                  width='16'
+                  height='16'
+                  viewBox='0 0 24 24'
+                  fill='none'
+                  stroke='currentColor'
+                  strokeWidth='2'
+                  strokeLinecap='round'
+                  strokeLinejoin='round'
+                >
+                  <path d='M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7'></path>
+                  <path d='M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z'></path>
+                </svg>
+              </button>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onDelete();
+                }}
+                className='p-2 text-gray-500 hover:text-red-600 dark:text-gray-400 dark:hover:text-red-400 transition-colors'
+              >
+                <svg
+                  xmlns='http://www.w3.org/2000/svg'
+                  width='16'
+                  height='16'
+                  viewBox='0 0 24 24'
+                  fill='none'
+                  stroke='currentColor'
+                  strokeWidth='2'
+                  strokeLinecap='round'
+                  strokeLinejoin='round'
+                >
+                  <polyline points='3 6 5 6 21 6'></polyline>
+                  <path d='M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2'></path>
+                </svg>
+              </button>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onOpen();
+                }}
+                className='p-2 text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 transition-colors'
+              >
+                <svg
+                  xmlns='http://www.w3.org/2000/svg'
+                  width='16'
+                  height='16'
+                  viewBox='0 0 24 24'
+                  fill='none'
+                  stroke='currentColor'
+                  strokeWidth='2'
+                  strokeLinecap='round'
+                  strokeLinejoin='round'
+                >
+                  <path d='M5 12h14'></path>
+                  <path d='M12 5l7 7-7 7'></path>
+                </svg>
+              </button>
+            </div>
           </div>
         </div>
-        <AnimatePresence>
-          {isExpanded && (
-            <motion.div
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: "auto" }}
-              exit={{ opacity: 0, height: 0 }}
-              transition={{ duration: 0.3 }}
+
+        <div className='h-1 w-full bg-gray-200 dark:bg-gray-700'>
+          <div
+            className='h-1 bg-blue-500'
+            style={{ width: `${progressPercentage}%` }}
+          ></div>
+        </div>
+      </motion.div>
+    );
+  }
+
+  return (
+    <motion.div
+      whileHover={{ y: -3, transition: { duration: 0.2 } }}
+      className='bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden shadow-sm hover:shadow-md transition-all duration-200'
+      onClick={onOpen}
+    >
+      <div className='p-6'>
+        <div className='flex items-start justify-between mb-4'>
+          <div
+            className={`flex items-center justify-center w-12 h-12 rounded-lg ${subjectColorClass} text-lg font-bold`}
+          >
+            {iconLetter}
+          </div>
+
+          <div className='flex space-x-1'>
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onEdit();
+              }}
+              className='p-1.5 text-gray-500 hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-400 transition-colors'
             >
-              <div className='mt-4 space-y-2'>
-                <p className='text-sm text-gray-600 dark:text-gray-300'>
-                  <span className='font-semibold'>Study Streak:</span>{" "}
-                  {studyStreak} days
-                </p>
-                <p className='text-sm text-gray-600 dark:text-gray-300'>
-                  <span className='font-semibold'>Avg. Study Time:</span>{" "}
-                  {averageStudyTime} minutes
-                </p>
-                <p className='text-sm text-gray-600 dark:text-gray-300'>
-                  <span className='font-semibold'>Created:</span>{" "}
-                  {createdAt ? formatDate(new Date(createdAt)) : "N/A"}
-                </p>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </CardContent>
-      <CardFooter className='flex flex-col md:flex-row justify-between p-4 bg-gray-50 dark:bg-gray-800'>
-        <Dialog>
-          <DialogTrigger asChild>
-            <Button
-              variant='outline'
-              className='bg-gray-500 text-white hover:bg-gray-600 dark:bg-gray-600 dark:hover:bg-gray-700 flex items-center justify-center mb-2 w-full md:w-auto'
-              title='More Options'
+              <svg
+                xmlns='http://www.w3.org/2000/svg'
+                width='16'
+                height='16'
+                viewBox='0 0 24 24'
+                fill='none'
+                stroke='currentColor'
+                strokeWidth='2'
+                strokeLinecap='round'
+                strokeLinejoin='round'
+              >
+                <path d='M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7'></path>
+                <path d='M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z'></path>
+              </svg>
+            </button>
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onDelete();
+              }}
+              className='p-1.5 text-gray-500 hover:text-red-600 dark:text-gray-400 dark:hover:text-red-400 transition-colors'
             >
-              <MoreHorizontalIcon className='mr-2' />
-              More
-            </Button>
-          </DialogTrigger>
-          <DialogContent className='m-5 rounded-md'>
-            <DialogHeader>
-              <DialogTitle>Manage Subject</DialogTitle>
-            </DialogHeader>
-            <DialogDescription className='capitalize'>
-              Keep working hard, soldier!
-            </DialogDescription>
-            <Button
-              onClick={() => onDelete(id)}
-              className='bg-red-500 text-white hover:bg-red-600 dark:bg-red-600 dark:hover:bg-red-700 flex items-center justify-center w-full mb-2'
-              title='Delete Subject'
-            >
-              <Trash2Icon className='mr-2' />
-              Delete
-            </Button>
-          </DialogContent>
-        </Dialog>
-        <Button
-          onClick={handleViewChapters}
-          className='bg-green-500 text-white hover:bg-green-600 dark:bg-green-600 dark:hover:bg-green-700 flex items-center justify-center w-full md:w-auto'
-          title='View Chapters'
-        >
-          <EyeIcon className='mr-2' />
-          View
-        </Button>
-      </CardFooter>
-    </Card>
+              <svg
+                xmlns='http://www.w3.org/2000/svg'
+                width='16'
+                height='16'
+                viewBox='0 0 24 24'
+                fill='none'
+                stroke='currentColor'
+                strokeWidth='2'
+                strokeLinecap='round'
+                strokeLinejoin='round'
+              >
+                <polyline points='3 6 5 6 21 6'></polyline>
+                <path d='M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2'></path>
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <div className='mb-4'>
+          <div className='flex items-center justify-between mb-1'>
+            <h3 className='text-lg font-semibold text-gray-900 dark:text-gray-100 truncate capitalize'>
+              {title}
+            </h3>
+            {getStatusBadge()}
+          </div>
+
+          <p className='text-sm text-gray-600 dark:text-gray-400 line-clamp-2 min-h-[2.5rem]'>
+            {description || "No description provided"}
+          </p>
+        </div>
+
+        <div className='mb-4'>
+          <div className='flex justify-between text-sm mb-1'>
+            <span className='text-gray-600 dark:text-gray-400'>Progress</span>
+            <span className='font-medium text-gray-800 dark:text-gray-200'>
+              {progressPercentage}%
+            </span>
+          </div>
+          <div className='w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2.5'>
+            <div
+              className='bg-blue-500 h-2.5 rounded-full'
+              style={{ width: `${progressPercentage}%` }}
+            ></div>
+          </div>
+        </div>
+
+        <div className='flex justify-between text-xs text-gray-500 dark:text-gray-400'>
+          <div>
+            <p>
+              {completedChapters}/{totalChapters} chapters
+            </p>
+          </div>
+          <div className='text-right'>
+            <p>Last opened: {formatTimeAgo(lastOpened)}</p>
+          </div>
+        </div>
+      </div>
+    </motion.div>
   );
 };
 

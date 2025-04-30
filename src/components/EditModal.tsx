@@ -55,7 +55,7 @@ const EditModal = ({
         </DialogHeader>
 
         <DialogDescription className='capitalize'>
-          hola amigo! kaise ho theek ho?{" "}
+          hola amigo! kaise ho theek ho?{" "} Abhi thoda edit feature mei dikkat hai, dekh kr theek kr doonga for sure!
         </DialogDescription>
         <Input
           value={newTitle}

@@ -108,7 +108,7 @@ export default function RootLayout({
         <link rel='manifest' href='/manifest.json' />
       </head>
       <body
-        className={`${inter.className} flex flex-col min-h-screen bg-gray-50 dark:bg-gray-900`}
+        className={`${inter.className} flex flex-col min-h-screen bg-gray-50 dark:bg-gray-900 antialiased`}
       >
         <ThemeProvider
           attribute='class'
