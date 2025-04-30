@@ -1,10 +1,20 @@
+/**
+ * CreateSubjectModal.tsx
+ *
+ * A comprehensive modal component for creating new subject entries.
+ * Features form validation, real-time feedback, and optimized UX flow.
+ *
+ * @author Ashutosh Kumar
+ * @version 1.0.0
+ */
+
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { X } from "lucide-react";
+import { AlertCircle, Plus, Check, Loader2 } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -12,98 +22,277 @@ import {
   DialogTitle,
   DialogTrigger,
   DialogDescription,
+  DialogFooter,
 } from "@/components/ui/dialog";
 import { useSubject } from "@/hooks/useSubject";
+import { toast } from "@/hooks/use-toast";
 
-interface CreateModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  onSubjectCreated: (newSubjects: any[]) => void; 
+/**
+ * Type definition for subject objects
+ */
+interface Subject {
+  id: string;
+  title: string;
+  createdAt?: Date;
+  updatedAt?: Date;
 }
 
-const CreateModal: React.FC<CreateModalProps> = ({
+/**
+ * Props for the CreateSubjectModal component
+ */
+interface CreateSubjectModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onSubjectCreated: (newSubjects: Subject[]) => void;
+}
+
+/**
+ * Modal component for creating new subjects with an enhanced user experience
+ * and proper form validation.
+ */
+const CreateSubjectModal: React.FC<CreateSubjectModalProps> = ({
   isOpen,
   onClose,
   onSubjectCreated,
 }) => {
-  const [formData, setFormData] = useState({
-    titles: "",
-  });
-  const { createSubject } = useSubject(); // Use the hook to create a subject
+  // State management
+  const [titles, setTitles] = useState<string>("");
+  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+  const [parsedTitles, setParsedTitles] = useState<string[]>([]);
+  const [validationErrors, setValidationErrors] = useState<string[]>([]);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { id, value } = e.target;
-    setFormData((prevData) => ({ ...prevData, [id]: value }));
+  // Custom hooks
+  const { createSubject } = useSubject();
+
+  /**
+   * Parse and validate the comma-separated titles
+   */
+  const validateAndParseTitles = useCallback(() => {
+    const errors: string[] = [];
+    const titleList = titles
+      .split(",")
+      .map((title) => title.trim())
+      .filter((title) => title.length > 0);
+
+    // Validate for duplicate titles
+    const uniqueTitles = new Set<string>();
+    const duplicates = new Set<string>();
+
+    titleList.forEach((title) => {
+      if (uniqueTitles.has(title.toLowerCase())) {
+        duplicates.add(title);
+      } else {
+        uniqueTitles.add(title.toLowerCase());
+      }
+    });
+
+    // Validate for title length
+    const invalidLengthTitles = titleList.filter(
+      (title) => title.length < 2 || title.length > 50
+    );
+
+    if (duplicates.size > 0) {
+      errors.push(
+        `Duplicate titles found: ${Array.from(duplicates).join(", ")}`
+      );
+    }
+
+    if (invalidLengthTitles.length > 0) {
+      errors.push("Subject titles must be between 2 and 50 characters");
+    }
+
+    setValidationErrors(errors);
+    setParsedTitles(
+      Array.from(uniqueTitles).map(
+        (title) => title.charAt(0).toUpperCase() + title.slice(1).toLowerCase()
+      )
+    );
+
+    return errors.length === 0;
+  }, [titles]);
+
+  /**
+   * Effect to validate titles whenever they change
+   */
+  useEffect(() => {
+    if (titles.length > 0) {
+      validateAndParseTitles();
+    } else {
+      setParsedTitles([]);
+      setValidationErrors([]);
+    }
+  }, [titles, validateAndParseTitles]);
+
+  /**
+   * Handle input change for the titles field
+   */
+  const handleTitlesChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setTitles(e.target.value);
   };
 
+  /**
+   * Reset the form to its initial state
+   */
+  const resetForm = () => {
+    setTitles("");
+    setParsedTitles([]);
+    setValidationErrors([]);
+    setIsSubmitting(false);
+  };
+
+  /**
+   * Handle form submission to create new subjects
+   */
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (!validateAndParseTitles() || parsedTitles.length === 0) {
+      return;
+    }
+
+    setIsSubmitting(true);
+    
     try {
-      const subjects = formData.titles
-        .split(",")
-        .map((title) => title.trim())
-        .filter((title) => title.length > 0);
-      const newSubjects = [];
-      for (const title of subjects) {
+      const newSubjects: Subject[] = [];
+
+      for (const title of parsedTitles) {
         const newSubject = await createSubject(title);
+        // @ts-ignore
         newSubjects.push(newSubject);
       }
+
       onSubjectCreated(newSubjects);
-      onClose(); // Close the modal first
-      window.location.reload(); // Reload the page
+
+      toast({
+        title: "Success!",
+        description: `Created ${newSubjects.length} new subject${
+          newSubjects.length > 1 ? "s" : ""
+        }.`,
+      });
+
+      resetForm();
+      onClose();
+
+      location.reload();
     } catch (error) {
       console.error("Failed to create subjects:", error);
+
+      toast({
+        title: "Error creating subjects",
+        description:
+          "There was a problem creating your subjects. Please try again.",
+        variant: "destructive",
+      });
+
+      setIsSubmitting(false);
     }
   };
 
-  const formFields = [
-    {
-      id: "titles",
-      label: "Subject Titles",
-      placeholder: "Enter subject titles separated by commas",
-    },
-  ];
+  /**
+   * Handle closing the modal with cleanup
+   */
+  const handleCloseModal = () => {
+    resetForm();
+    onClose();
+  };
 
+  // Don't render if not open
   if (!isOpen) return null;
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogTrigger asChild>
-        {/* Optional trigger button or element */}
-      </DialogTrigger>
-      <DialogContent>
+    <Dialog open={isOpen} onOpenChange={handleCloseModal}>
+      <DialogContent className='sm:max-w-md'>
         <DialogHeader>
-          <DialogTitle>Create New Subjects</DialogTitle>
+          <DialogTitle className='text-xl flex items-center'>
+            <Plus className='mr-2 h-5 w-5 text-blue-600' />
+            Create New Subjects
+          </DialogTitle>
           <DialogDescription>
-            Enter the names of subjects you want to create, separated by commas.
+            Enter subject titles separated by commas. Each subject will be
+            created as a separate entity.
           </DialogDescription>
         </DialogHeader>
-        <form onSubmit={handleSubmit}>
-          <div className='space-y-4'>
-            {formFields.map((field) => (
-              <div key={field.id} className='flex flex-col space-y-3'>
-                <Label htmlFor={field.id}>{field.label}</Label>
-                <Input
-                  id={field.id}
-                  value={formData[field.id as keyof typeof formData]}
-                  onChange={handleChange}
-                  placeholder={field.placeholder}
-                  required
-                  className='border rounded-lg'
-                />
+
+        <form onSubmit={handleSubmit} className='mt-4'>
+          <div className='space-y-6'>
+            <div className='space-y-2'>
+              <Label htmlFor='titles' className='text-sm font-medium'>
+                Subject Titles
+              </Label>
+              <Input
+                id='titles'
+                value={titles}
+                onChange={handleTitlesChange}
+                placeholder='Math, Science, History, Art...'
+                className='w-full'
+                disabled={isSubmitting}
+                aria-invalid={validationErrors.length > 0}
+                aria-describedby='titles-error'
+              />
+
+              {validationErrors.length > 0 && (
+                <div id='titles-error' className='text-sm text-red-500 mt-1'>
+                  {validationErrors.map((error, index) => (
+                    <div key={index} className='flex items-start gap-1'>
+                      <AlertCircle className='h-4 w-4 mt-0.5 flex-shrink-0' />
+                      <span>{error}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {parsedTitles.length > 0 && (
+              <div className='bg-gray-50 dark:bg-gray-800 rounded-md p-3'>
+                <Label className='text-sm font-medium text-gray-700 dark:text-gray-300'>
+                  Subjects to create ({parsedTitles.length}):
+                </Label>
+                <div className='mt-2 flex flex-wrap gap-2'>
+                  {parsedTitles.map((title, index) => (
+                    <span
+                      key={index}
+                      className='inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200'
+                    >
+                      <Check className='mr-1 h-3 w-3' />
+                      {title}
+                    </span>
+                  ))}
+                </div>
               </div>
-            ))}
+            )}
           </div>
-          <div className='flex justify-between mt-4'>
-            <Button variant='outline' type='button' onClick={onClose}>
+
+          <DialogFooter className='mt-6 gap-2'>
+            <Button
+              type='button'
+              variant='outline'
+              onClick={handleCloseModal}
+              disabled={isSubmitting}
+            >
               Cancel
             </Button>
-            <Button type='submit'>Create</Button>
-          </div>
+            <Button
+              type='submit'
+              disabled={
+                isSubmitting ||
+                parsedTitles.length === 0 ||
+                validationErrors.length > 0
+              }
+            >
+              {isSubmitting ? (
+                <>
+                  <Loader2 className='mr-2 h-4 w-4 animate-spin' />
+                  Creating...
+                </>
+              ) : (
+                "Create Subjects"
+              )}
+            </Button>
+          </DialogFooter>
         </form>
       </DialogContent>
     </Dialog>
   );
 };
 
-export default CreateModal;
+export default CreateSubjectModal;
