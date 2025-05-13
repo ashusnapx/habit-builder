@@ -247,28 +247,19 @@ const Navbar: React.FC = () => {
           </Link>
 
           {/* Mobile Menu Toggle */}
-          <motion.button
-            whileTap={{ scale: 0.9 }}
+          <Button
+            variant='ghost'
+            size='sm'
             onClick={toggleMenu}
             className='md:hidden text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:ring-opacity-50 rounded-md p-1.5'
             aria-label={isMenuOpen ? "Close menu" : "Open menu"}
           >
-            <AnimatePresence mode='wait'>
-              <motion.div
-                key={isMenuOpen ? "close" : "open"}
-                initial={{ opacity: 0, rotate: isMenuOpen ? -90 : 90 }}
-                animate={{ opacity: 1, rotate: 0 }}
-                exit={{ opacity: 0, rotate: isMenuOpen ? 90 : -90 }}
-                transition={{ duration: 0.2 }}
-              >
-                {isMenuOpen ? (
-                  <X size={24} className='text-red-500 dark:text-red-400' />
-                ) : (
-                  <Menu size={24} />
-                )}
-              </motion.div>
-            </AnimatePresence>
-          </motion.button>
+            {isMenuOpen ? (
+              <X size={24} className='text-red-500 dark:text-red-400' />
+            ) : (
+              <Menu size={24} />
+            )}
+          </Button>
         </div>
 
         {/* Desktop/Mobile Navigation */}
@@ -297,6 +288,7 @@ const Navbar: React.FC = () => {
                   <div className='flex items-center gap-2'>
                     <Avatar className='h-8 w-8 border border-gray-200 dark:border-gray-700 ring-2 ring-blue-500/20 dark:ring-blue-400/20'>
                       <AvatarImage
+                        // @ts-ignore
                         src={user.profileImage || ""}
                         alt={user.name || "User"}
                       />
@@ -351,9 +343,9 @@ const Navbar: React.FC = () => {
                         <p>Dashboard</p>
                       </TooltipContent>
                     </Tooltip>
-                  </TooltipProvider>
+                  </TooltipProvider> */}
 
-                  <TooltipProvider>
+                  {/* <TooltipProvider>
                     <Tooltip>
                       <TooltipTrigger asChild>
                         <Link href='/analytics'>
@@ -452,7 +444,7 @@ const Navbar: React.FC = () => {
               {/* Theme Toggle and External Links */}
               <div className='flex items-center gap-3 mt-3 md:mt-0'>
                 <Link
-                  href='https://github.com/ashusnapx/habit-ai'
+                  href='https://ashusnapx.vercel.app/'
                   className='flex items-center gap-1.5 text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 text-sm transition-colors duration-200'
                   target='_blank'
                   rel='noopener noreferrer'
