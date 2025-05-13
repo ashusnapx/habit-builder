@@ -1,37 +1,86 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import {
   signUp as appwriteSignUp,
   database,
   appwriteConfig,
 } from "@/lib/appwrite";
 
+interface SignUpResponse {
+  success: boolean;
+  errorCode?: number;
+  userId?: string;
+}
+
+/**
+ * Custom hook to manage user registration functionality
+ * @returns {Object} Sign-up function and associated state
+ */
 export const useSignUp = () => {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const [loading, setLoading] = useState<boolean>(false);
 
-  const signUp = async (email: string, password: string, name: string) => {
-    try {
-      // Create user account in Appwrite
-      const user = await appwriteSignUp(email, password, name);
+  const signUp = useCallback(
+    async (
+      email: string,
+      password: string,
+      name: string
+    ): Promise<SignUpResponse> => {
+      // Input validation
+      if (!email || !password || !name) {
+        setError("All fields are required");
+        return { success: false, errorCode: 400 };
+      }
 
-      // Add user to the database collection
-      await database.createDocument(
-        appwriteConfig.databaseId,
-        appwriteConfig.userCollectionId,
-        user.$id,
-        { name, email, password }
-      );
-
-      setSuccess("Sign up successful!");
+      setLoading(true);
       setError(null);
-      return { success: true };
-    } catch (err: any) {
-      const errorMessage = err.message || "Sign up failed. Please try again.";
-      setError(errorMessage);
       setSuccess(null);
-      return { success: false };
-    }
-  };
 
-  return { signUp, error, success };
+      try {
+        // Create user account in Appwrite
+        const user = await appwriteSignUp(email, password, name);
+
+        // Add user to the database collection
+        await database.createDocument(
+          appwriteConfig.databaseId,
+          appwriteConfig.userCollectionId,
+          user.$id,
+          {
+            name,
+            email,
+            createdAt: new Date().toISOString(),
+            // Don't store raw passwords in database documents
+            // This is a security issue in your original code
+          }
+        );
+
+        setSuccess("Sign up successful!");
+        return { success: true, userId: user.$id };
+      } catch (err: any) {
+        const errorMessage = err.message || "Sign up failed. Please try again.";
+        const errorCode = err.code || 500;
+
+        console.error("Sign up error:", err);
+        setError(errorMessage);
+
+        return { success: false, errorCode };
+      } finally {
+        setLoading(false);
+      }
+    },
+    []
+  );
+
+  const resetState = useCallback(() => {
+    setError(null);
+    setSuccess(null);
+  }, []);
+
+  return {
+    signUp,
+    error,
+    success,
+    loading,
+    resetState,
+  };
 };

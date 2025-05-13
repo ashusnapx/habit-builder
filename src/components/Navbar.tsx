@@ -7,12 +7,12 @@
  * for the Habit.AI application. Features authentication state management,
  * responsive design, theme toggling, and modal controls.
  *
- * @author Original: Ashutosh Kumar
- * @version 2.0.0
+ * @author Original: Ashutosh Kumar, Enhanced: Claude
+ * @version 3.0.0
  */
 
 import { useState, useEffect, useRef, useCallback } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -25,6 +25,7 @@ import {
   HomeIcon,
   BarChartIcon,
   Settings,
+  Sparkles,
 } from "lucide-react";
 
 // UI Components
@@ -42,13 +43,12 @@ import { Badge } from "./ui/badge";
 
 // Modals
 import CreateModal from "./CreateModal";
-import TargetModal from "./TargetModal";
 
-// Backend services
-import { account, fetchSubjects, signOut } from "@/lib/appwrite";
+// Custom hooks for authentication
+import { useAuth } from "@/hooks/useAuth";
 import { useFetchUser } from "@/hooks/useFetchUser";
+import { useSignOut } from "@/hooks/useSignOut";
 
-// Analytics provider
 // Types
 interface Subject {
   id: string;
@@ -59,7 +59,7 @@ interface Subject {
   createdAt: Date;
 }
 
-type ModalType = "create" | "target" | null;
+type ModalType = "create" | null;
 
 /**
  * Navbar Component
@@ -70,15 +70,21 @@ type ModalType = "create" | "target" | null;
 const Navbar: React.FC = () => {
   // State management
   const [activeModal, setActiveModal] = useState<ModalType>(null);
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const [isMenuOpen, setMenuOpen] = useState<boolean>(false);
   const [greeting, setGreeting] = useState<string>("");
-  const [isLoading, setIsLoading] = useState<boolean>(true);
+
+  // Custom hooks
+  const { isAuthenticated, isLoading: authLoading, refreshAuth } = useAuth();
+  const { user, loading: userLoading, refetchUser } = useFetchUser();
+  const { signOut } = useSignOut();
 
   // Hooks
   const router = useRouter();
-  const { user, error } = useFetchUser();
+  const pathname = usePathname();
   const menuRef = useRef<HTMLDivElement>(null);
+
+  // Computed states
+  const isLoading = authLoading || userLoading;
 
   /**
    * Opens a specific modal type
@@ -86,7 +92,6 @@ const Navbar: React.FC = () => {
    */
   const openModal = useCallback((modalType: ModalType) => {
     setActiveModal(modalType);
-    // Track event if analytics implemented in the future
   }, []);
 
   /**
@@ -104,67 +109,54 @@ const Navbar: React.FC = () => {
   }, []);
 
   /**
-   * Verifies the user's authentication status
-   */
-  const checkAuthentication = useCallback(async () => {
-    setIsLoading(true);
-    try {
-      const session = await account.getSession("current");
-      setIsAuthenticated(!!session);
-      // Analytics tracking could be added here in the future
-    } catch (error) {
-      setIsAuthenticated(false);
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
-
-  /**
    * Handles user sign out process
    */
   const handleSignOut = useCallback(async () => {
     try {
-      // Analytics tracking could be added here in the future
       await signOut();
-      setIsAuthenticated(false);
+      setMenuOpen(false);
       router.push("/sign-in");
     } catch (error) {
       console.error("Error signing out:", error);
-      // Implement proper error handling/notification here
+      // Error could be handled with a toast notification
     }
-  }, [router]);
+  }, [router, signOut]);
 
   /**
    * Redirects to sign in page
    */
   const handleSignIn = useCallback(() => {
-    // Analytics tracking could be added here in the future
     router.push("/sign-in");
+
+    // Set up an event listener to check auth status after navigation
+    const checkAuthAfterRedirect = setTimeout(() => {
+      refreshAuth();
+      refetchUser();
+    }, 1000);
+
     closeModal();
-  }, [router, closeModal]);
+    setMenuOpen(false);
+
+    return () => clearTimeout(checkAuthAfterRedirect);
+  }, [router, closeModal, refreshAuth, refetchUser]);
 
   /**
    * Redirects to sign up page
    */
   const handleSignUp = useCallback(() => {
-    // Analytics tracking could be added here in the future
     router.push("/sign-up");
-    closeModal();
-  }, [router, closeModal]);
 
-  /**
-   * Callback for when new subjects are created
-   * @param newSubjects - The newly created subjects data
-   */
-  const handleSubjectCreated = useCallback(
-    (newSubjects: any[]) => {
-      fetchSubjects().then((subjects) => {
-        // Analytics tracking could be added here in the future
-        closeModal();
-      });
-    },
-    [closeModal]
-  );
+    // Set up an event listener to check auth status after navigation
+    const checkAuthAfterRedirect = setTimeout(() => {
+      refreshAuth();
+      refetchUser();
+    }, 1000);
+
+    closeModal();
+    setMenuOpen(false);
+
+    return () => clearTimeout(checkAuthAfterRedirect);
+  }, [router, closeModal, refreshAuth, refetchUser]);
 
   /**
    * Generate appropriate greeting based on time of day
@@ -180,11 +172,6 @@ const Navbar: React.FC = () => {
     }
   }, []);
 
-  // Check authentication on component mount and user state change
-  useEffect(() => {
-    checkAuthentication();
-  }, [checkAuthentication, user]);
-
   // Close menu when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -197,7 +184,27 @@ const Navbar: React.FC = () => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // Animation variants for menu items
+  // Update auth state when path changes (for when user signs in/out)
+  useEffect(() => {
+    // Check if the path indicates an auth-related action
+    if (
+      pathname.includes("sign-in") ||
+      pathname.includes("sign-up") ||
+      pathname === "/"
+    ) {
+      refreshAuth();
+      refetchUser();
+    }
+
+    setMenuOpen(false);
+  }, [pathname, refreshAuth, refetchUser]);
+
+  // Animation variants
+  const fadeInVariants = {
+    hidden: { opacity: 0 },
+    visible: { opacity: 1, transition: { duration: 0.3 } },
+  };
+
   const menuItemVariants = {
     hidden: { opacity: 0, y: 20 },
     visible: (i: number) => ({
@@ -205,14 +212,14 @@ const Navbar: React.FC = () => {
       y: 0,
       transition: {
         delay: i * 0.1,
-        duration: 0.5,
+        duration: 0.4,
         ease: "easeOut",
       },
     }),
   };
 
   return (
-    <header className='fixed top-0 left-0 w-full z-50 bg-white/90 dark:bg-gray-900/95 backdrop-blur-sm shadow-sm'>
+    <header className='fixed top-0 left-0 w-full z-50 bg-white/90 dark:bg-gray-900/95 backdrop-blur-md shadow-sm'>
       <div className='max-w-7xl mx-auto flex flex-col md:flex-row justify-between py-3 px-4 md:px-6 lg:px-8 border-b border-gray-200 dark:border-gray-800'>
         {/* Logo and Brand */}
         <div className='flex items-center justify-between w-full md:w-auto'>
@@ -225,26 +232,43 @@ const Navbar: React.FC = () => {
               <span className='text-blue-600 dark:text-blue-400 italic group-hover:text-blue-500 dark:group-hover:text-blue-300 transition-colors'>
                 AI
               </span>
+              <motion.span
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: 0.3, duration: 0.5 }}
+                className='ml-1 text-amber-500 dark:text-amber-400'
+              >
+                <Sparkles size={20} />
+              </motion.span>
             </h1>
-            <span className='text-sm font-normal text-gray-600 dark:text-gray-400 transition-opacity duration-300 opacity-80 group-hover:opacity-100'>
+            {/* <span className='text-sm font-normal text-gray-600 dark:text-gray-400 transition-opacity duration-300 opacity-80 group-hover:opacity-100'>
               By Ashutosh Kumar
-            </span>
+            </span> */}
           </Link>
 
           {/* Mobile Menu Toggle */}
-          <Button
-            variant='ghost'
-            size='sm'
+          <motion.button
+            whileTap={{ scale: 0.9 }}
             onClick={toggleMenu}
-            className='md:hidden text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:ring-opacity-50 rounded-md'
+            className='md:hidden text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:ring-opacity-50 rounded-md p-1.5'
             aria-label={isMenuOpen ? "Close menu" : "Open menu"}
           >
-            {isMenuOpen ? (
-              <X size={24} className='text-red-500 dark:text-red-400' />
-            ) : (
-              <Menu size={24} />
-            )}
-          </Button>
+            <AnimatePresence mode='wait'>
+              <motion.div
+                key={isMenuOpen ? "close" : "open"}
+                initial={{ opacity: 0, rotate: isMenuOpen ? -90 : 90 }}
+                animate={{ opacity: 1, rotate: 0 }}
+                exit={{ opacity: 0, rotate: isMenuOpen ? 90 : -90 }}
+                transition={{ duration: 0.2 }}
+              >
+                {isMenuOpen ? (
+                  <X size={24} className='text-red-500 dark:text-red-400' />
+                ) : (
+                  <Menu size={24} />
+                )}
+              </motion.div>
+            </AnimatePresence>
+          </motion.button>
         </div>
 
         {/* Desktop/Mobile Navigation */}
@@ -252,32 +276,36 @@ const Navbar: React.FC = () => {
           <motion.nav
             ref={menuRef}
             initial={false}
-            animate={{ height: isMenuOpen ? "auto" : "0px" }}
+            animate={
+              isMenuOpen
+                ? { height: "auto", opacity: 1 }
+                : { height: "auto", opacity: 1 }
+            }
             className={`md:h-auto w-full md:w-auto overflow-hidden md:overflow-visible ${
               isMenuOpen ? "block" : "hidden md:block"
             }`}
           >
-            <div className='flex flex-col md:flex-row items-center space-y-4 md:space-y-0 md:space-x-6 mt-4 md:mt-2 pb-4 md:pb-0 align-middle'>
+            <div className='flex flex-col md:flex-row items-center space-y-4 md:space-y-0 md:space-x-6 mt-4 md:mt-0 pb-4 md:pb-0 align-middle'>
               {/* Welcome message for authenticated users */}
               {/* {isAuthenticated && user && !isLoading && (
                 <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ delay: 0.2 }}
-                  className='flex items-center mr-0 md:mr-4 mb-3 md:mb-0'
+                  initial='hidden'
+                  animate='visible'
+                  variants={fadeInVariants}
+                  className='hidden md:flex items-center mr-2 md:mr-4 mb-3 md:mb-0'
                 >
                   <div className='flex items-center gap-2'>
-                    <Avatar className='h-8 w-8 border border-gray-200 dark:border-gray-700'>
+                    <Avatar className='h-8 w-8 border border-gray-200 dark:border-gray-700 ring-2 ring-blue-500/20 dark:ring-blue-400/20'>
                       <AvatarImage
                         src={user.profileImage || ""}
                         alt={user.name || "User"}
                       />
-                      <AvatarFallback className='bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200'>
+                      <AvatarFallback className='bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 font-medium'>
                         {user.name?.charAt(0) || "U"}
                       </AvatarFallback>
                     </Avatar>
                     <div className='hidden md:block'>
-                      <p className='text-sm font-medium text-gray-800 dark:text-gray-200'>
+                      <p className='text-sm font-medium text-gray-700 dark:text-gray-300'>
                         {greeting},{" "}
                         <span className='font-semibold capitalize'>
                           {user.name?.split(" ")[0] || "User"}
@@ -291,12 +319,17 @@ const Navbar: React.FC = () => {
 
               {/* Authentication Buttons */}
               {isLoading ? (
-                <div className='flex gap-2 md:gap-4'>
-                  <Skeleton className='h-10 w-20' />
-                  <Skeleton className='h-10 w-20' />
+                <div className='flex gap-2 md:gap-4 animate-pulse'>
+                  <Skeleton className='h-10 w-24' />
+                  <Skeleton className='h-10 w-24' />
                 </div>
               ) : isAuthenticated ? (
-                <div className='flex flex-col md:flex-row gap-2 md:gap-3 w-full md:w-auto'>
+                <motion.div
+                  initial='hidden'
+                  animate='visible'
+                  variants={fadeInVariants}
+                  className='flex flex-col md:flex-row gap-2 md:gap-3 w-full md:w-auto'
+                >
                   {/* Main Navigation Buttons for Authenticated Users */}
                   {/* <TooltipProvider>
                     <Tooltip>
@@ -305,7 +338,7 @@ const Navbar: React.FC = () => {
                           <Button
                             variant='outline'
                             size='sm'
-                            className='flex items-center gap-2 hover:bg-blue-50 dark:hover:bg-blue-900/30 text-gray-700 dark:text-gray-300 border-gray-200 dark:border-gray-700 w-full md:w-auto'
+                            className='flex items-center gap-2 hover:bg-blue-50 dark:hover:bg-blue-900/30 text-gray-700 dark:text-gray-300 border-gray-200 dark:border-gray-700 w-full md:w-auto transition-colors duration-200'
                           >
                             <HomeIcon size={16} />
                             <span className='md:hidden lg:inline'>
@@ -318,16 +351,16 @@ const Navbar: React.FC = () => {
                         <p>Dashboard</p>
                       </TooltipContent>
                     </Tooltip>
-                  </TooltipProvider> */}
+                  </TooltipProvider>
 
-                  {/* <TooltipProvider>
+                  <TooltipProvider>
                     <Tooltip>
                       <TooltipTrigger asChild>
                         <Link href='/analytics'>
                           <Button
                             variant='outline'
                             size='sm'
-                            className='flex items-center gap-2 hover:bg-blue-50 dark:hover:bg-blue-900/30 text-gray-700 dark:text-gray-300 border-gray-200 dark:border-gray-700 w-full md:w-auto'
+                            className='flex items-center gap-2 hover:bg-blue-50 dark:hover:bg-blue-900/30 text-gray-700 dark:text-gray-300 border-gray-200 dark:border-gray-700 w-full md:w-auto transition-colors duration-200'
                           >
                             <BarChartIcon size={16} />
                             <span className='md:hidden lg:inline'>
@@ -351,7 +384,7 @@ const Navbar: React.FC = () => {
                             setMenuOpen(false);
                           }}
                           size='sm'
-                          className='flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white w-full md:w-auto'
+                          className='flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white w-full md:w-auto transition-colors duration-200'
                         >
                           <PlusIcon size={16} />
                           <span className='md:hidden lg:inline'>
@@ -365,70 +398,92 @@ const Navbar: React.FC = () => {
                     </Tooltip>
                   </TooltipProvider>
 
-                  <Button
-                    onClick={() => {
-                      handleSignOut();
-                      setMenuOpen(false);
-                    }}
-                    variant='outline'
-                    size='sm'
-                    className='flex items-center gap-2 hover:bg-red-50 dark:hover:bg-red-900/30 hover:text-red-600 dark:hover:text-red-400 border-gray-200 dark:border-gray-700 w-full md:w-auto'
+                  <motion.div
+                    whileHover={{ scale: 1.03 }}
+                    whileTap={{ scale: 0.98 }}
                   >
-                    <LogOutIcon size={16} />
-                    <span>Sign Out</span>
-                  </Button>
-                </div>
+                    <Button
+                      onClick={handleSignOut}
+                      variant='outline'
+                      size='sm'
+                      className='flex items-center gap-2 hover:bg-red-50 dark:hover:bg-red-900/30 hover:text-red-600 dark:hover:text-red-400 border-gray-200 dark:border-gray-700 w-full md:w-auto transition-colors duration-200'
+                    >
+                      <LogOutIcon size={16} />
+                      <span>Sign Out</span>
+                    </Button>
+                  </motion.div>
+                </motion.div>
               ) : (
-                <div className='flex flex-col md:flex-row gap-2 md:gap-3 w-full md:w-auto'>
-                  <Button
-                    onClick={() => {
-                      handleSignIn();
-                      setMenuOpen(false);
-                    }}
-                    variant='outline'
-                    size='sm'
-                    className='border-gray-200 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800 w-full md:w-auto'
+                <motion.div
+                  initial='hidden'
+                  animate='visible'
+                  variants={fadeInVariants}
+                  className='flex flex-col md:flex-row gap-2 md:gap-3 w-full md:w-auto'
+                >
+                  <motion.div
+                    whileHover={{ scale: 1.03 }}
+                    whileTap={{ scale: 0.98 }}
                   >
-                    Sign In
-                  </Button>
-                  <Button
-                    onClick={() => {
-                      handleSignUp();
-                      setMenuOpen(false);
-                    }}
-                    size='sm'
-                    className='bg-blue-600 hover:bg-blue-700 text-white w-full md:w-auto'
+                    <Button
+                      onClick={handleSignIn}
+                      variant='outline'
+                      size='sm'
+                      className='border-gray-200 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800 w-full md:w-auto transition-colors duration-200'
+                    >
+                      Sign In
+                    </Button>
+                  </motion.div>
+
+                  <motion.div
+                    whileHover={{ scale: 1.03 }}
+                    whileTap={{ scale: 0.98 }}
                   >
-                    Get Started
-                  </Button>
-                </div>
+                    <Button
+                      onClick={handleSignUp}
+                      size='sm'
+                      className='bg-blue-600 hover:bg-blue-700 text-white w-full md:w-auto shadow-sm hover:shadow transition-all duration-200'
+                    >
+                      Get Started
+                    </Button>
+                  </motion.div>
+                </motion.div>
               )}
 
               {/* Theme Toggle and External Links */}
               <div className='flex items-center gap-3 mt-3 md:mt-0'>
                 <Link
-                  href='https://ashusnapx.vercel.app/'
-                  className='flex items-center gap-1.5 text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 text-sm'
+                  href='https://github.com/ashusnapx/habit-ai'
+                  className='flex items-center gap-1.5 text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 text-sm transition-colors duration-200'
                   target='_blank'
                   rel='noopener noreferrer'
                   onClick={() => setMenuOpen(false)}
                 >
-                  <Github size={16} />
-                  <span className='md:hidden lg:inline'>Github</span>
+                  <Github size={20} className='text-black dark:text-white' />
+                  {/* <span className='md:hidden lg:inline'>Github</span> */}
                 </Link>
 
                 {/* Themed toggle with animation */}
-                <div className='transition-all duration-300 hover:scale-105'>
+                <motion.div
+                  whileHover={{ scale: 1.1, rotate: 5 }}
+                  whileTap={{ scale: 0.9 }}
+                  className='transition-all duration-300'
+                >
                   <ModeToggle />
-                </div>
+                </motion.div>
 
                 {/* New Feature Badge */}
-                <Badge
-                  variant='outline'
-                  className='hidden md:flex text-xs bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300 border-blue-200 dark:border-blue-800'
+                <motion.div
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.5 }}
                 >
-                  New
-                </Badge>
+                  <Badge
+                    variant='outline'
+                    className='hidden md:flex text-xs bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300 border-blue-200 dark:border-blue-800 px-2 py-1'
+                  >
+                    <Sparkles size={12} className='mr-1' /> AI Powered
+                  </Badge>
+                </motion.div>
               </div>
             </div>
           </motion.nav>
@@ -439,10 +494,10 @@ const Navbar: React.FC = () => {
       <CreateModal
         isOpen={activeModal === "create"}
         onClose={closeModal}
-        onSubjectCreated={handleSubjectCreated}
+        onSubjectCreated={() => {
+          closeModal();
+        }}
       />
-
-      {/* <TargetModal isOpen={activeModal === "target"} onClose={closeModal} /> */}
     </header>
   );
 };
