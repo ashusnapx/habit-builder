@@ -94,12 +94,36 @@ export const fetchSubjects = async () => {
 // Function to fetch chapters
 export const fetchChapters = async (subjectId: string) => {
   try {
-    const response = await database.listDocuments(
-      appwriteConfig.databaseId,
-      appwriteConfig.chapterCollectionId,
-      [Query.equal("subject", subjectId)]
-    );
-    return response.documents;
+    // Initialize an array to hold all documents
+    let allDocuments: any[] = [];
+    let offset = 0;
+    const limit = 120; // Fetching 120 documents per request (maximum allowed by Appwrite)
+    
+    // Loop to handle pagination
+    while (true) {
+      const response = await database.listDocuments(
+        appwriteConfig.databaseId,
+        appwriteConfig.chapterCollectionId,
+        [
+          Query.equal("subject", subjectId),
+          Query.limit(limit),
+          Query.offset(offset)
+        ]
+      );
+      
+      // Add the fetched documents to our array
+      allDocuments = [...allDocuments, ...response.documents];
+      
+      // If we received fewer documents than the limit, we've reached the end
+      if (response.documents.length < limit) {
+        break;
+      }
+      
+      // Update the offset for the next batch
+      offset += limit;
+    }
+    
+    return allDocuments;
   } catch (error) {
     //console.error("Error fetching chapters:", error);
     throw error;
