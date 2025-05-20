@@ -25,6 +25,7 @@ const SignUpPage = () => {
   });
 
   const [showPassword, setShowPassword] = useState(false); // State to toggle password visibility
+  const [passwordLimitReached, setPasswordLimitReached] = useState(false); // Track if password limit is reached
   const { signUp, error, success } = useSignUp();
   const router = useRouter();
   const { user } = useFetchUser();
@@ -45,10 +46,24 @@ const SignUpPage = () => {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { id, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [id]: value,
-    }));
+
+    // For password field, enforce 8 character limit
+    if (id === "password") {
+      if (value.length <= 8) {
+        setFormData((prev) => ({
+          ...prev,
+          [id]: value,
+        }));
+        // Update the password limit state
+        setPasswordLimitReached(value.length === 8);
+      }
+    } else {
+      // For other fields, no restrictions
+      setFormData((prev) => ({
+        ...prev,
+        [id]: value,
+      }));
+    }
   };
 
   const inputs = [
@@ -99,13 +114,24 @@ const SignUpPage = () => {
                     className='pr-10' // Add padding to the right for the icon
                   />
                   {input.id === "password" && (
-                    <button
-                      type='button'
-                      onClick={() => setShowPassword(!showPassword)}
-                      className='absolute top-9 right-3 text-gray-600'
-                    >
-                      {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
-                    </button>
+                    <>
+                      <button
+                        type='button'
+                        onClick={() => setShowPassword(!showPassword)}
+                        className='absolute top-9 right-3 text-gray-600'
+                      >
+                        {showPassword ? (
+                          <EyeOff size={20} />
+                        ) : (
+                          <Eye size={20} />
+                        )}
+                      </button>
+                      {passwordLimitReached && (
+                        <p className='text-amber-600 text-sm mt-1'>
+                          Maximum password length (8 characters) reached
+                        </p>
+                      )}
+                    </>
                   )}
                 </div>
               ))}

@@ -221,7 +221,7 @@ const SubjectCard: React.FC<SubjectCardProps> = ({
   return (
     <motion.div
       whileHover={{ y: -3, transition: { duration: 0.2 } }}
-      className='bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden shadow-sm hover:shadow-md transition-all duration-200'
+      className='bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden shadow-sm hover:shadow-md transition-all duration-200 cursor-pointer'
       onClick={onOpen}
     >
       <div className='p-6'>

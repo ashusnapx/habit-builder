@@ -40,7 +40,7 @@ export const useSignUp = () => {
         // Create user account in Appwrite
         const user = await appwriteSignUp(email, password, name);
 
-        // Add user to the database collection
+        // Add user to the database collection matching the exact schema
         await database.createDocument(
           appwriteConfig.databaseId,
           appwriteConfig.userCollectionId,
@@ -48,9 +48,8 @@ export const useSignUp = () => {
           {
             name,
             email,
-            createdAt: new Date().toISOString(),
-            // Don't store raw passwords in database documents
-            // This is a security issue in your original code
+            password: "SECURE", // 6-character placeholder within the 8-char limit
+            subject: [], // Empty array for the relationship field
           }
         );
 

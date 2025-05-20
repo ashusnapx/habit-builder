@@ -101,7 +101,7 @@ const SignInPage = () => {
             <Button onClick={handleSignIn} className='w-full'>
               Sign In
             </Button>
-            <Button onClick={handleSignIn} className='w-full'>
+            <Button onClick={handleSignUp} className='w-full'>
               Create an account?
             </Button>
           </div>
